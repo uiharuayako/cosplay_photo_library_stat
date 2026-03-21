@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from .config import settings
+from .dashboard import SORT_FIELDS, build_dashboard_payload, format_entity_name
 from .db import Base, SessionLocal, engine
 from .i18n import (
     ensure_data_layout,
@@ -31,7 +32,6 @@ app.mount("/static", StaticFiles(directory=settings.project_dir / "app" / "stati
 templates = Jinja2Templates(directory=str(settings.project_dir / "app" / "templates"))
 
 
-SORT_FIELDS = {"images": "image_count", "sets": "set_count", "size": "total_size"}
 ENTITY_TYPES = {"cosers", "characters"}
 
 
@@ -92,95 +92,15 @@ def get_db() -> Iterable[Session]:
         session.close()
 
 
-def sort_items(items: list[dict], sort_by: str) -> list[dict]:
-    field = SORT_FIELDS[sort_by]
-    return sorted(
-        items,
-        key=lambda item: (-item[field], item["display_name"].casefold(), item["raw_name"].casefold()),
-    )
-
-
-def format_entity_name(raw_name: str, key: str, translations: dict[str, str]) -> str:
-    translated = translations.get(key, "").strip()
-    return translated or raw_name
-
-
-def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict:
-    if sort_by not in SORT_FIELDS:
-        raise HTTPException(status_code=400, detail="Unsupported sort field")
-
-    coser_translations = load_entity_translations("cosers", locale)
-    character_translations = load_entity_translations("characters", locale)
-    set_rows = session.execute(
-        select(SetRecord).options(selectinload(SetRecord.characters)).order_by(SetRecord.coser_name, SetRecord.set_name)
-    ).scalars().all()
-
-    total_images = sum(item.image_count for item in set_rows)
-    total_size = sum(item.total_size for item in set_rows)
-
-    coser_map: dict[str, dict] = {}
-    character_map: dict[str, dict] = {}
-
-    for row in set_rows:
-        coser_entry = coser_map.setdefault(
-            row.coser_key,
-            {
-                "key": row.coser_key,
-                "raw_name": row.coser_name,
-                "display_name": format_entity_name(row.coser_name, row.coser_key, coser_translations),
-                "set_count": 0,
-                "image_count": 0,
-                "total_size": 0,
-                "cover_set_id": row.id,
-            },
-        )
-        coser_entry["set_count"] += 1
-        coser_entry["image_count"] += row.image_count
-        coser_entry["total_size"] += row.total_size
-
-        for relation in row.characters:
-            character_entry = character_map.setdefault(
-                relation.character_key,
-                {
-                    "key": relation.character_key,
-                    "raw_name": relation.character_name,
-                    "display_name": format_entity_name(
-                        relation.character_name,
-                        relation.character_key,
-                        character_translations,
-                    ),
-                    "set_count": 0,
-                    "image_count": 0,
-                    "total_size": 0,
-                    "cover_set_id": row.id,
-                },
-            )
-            character_entry["set_count"] += 1
-            character_entry["image_count"] += row.image_count
-            character_entry["total_size"] += row.total_size
-
-    scan_state = read_scan_state()
-    return {
-        "summary": {
-            "totalCosers": len(coser_map),
-            "totalSets": len(set_rows),
-            "totalCharacters": len(character_map),
-            "totalImages": total_images,
-            "totalSize": total_size,
-            "lastCompletedScan": scan_state.get("finished_at"),
-        },
-        "cosers": sort_items(list(coser_map.values()), sort_by),
-        "characters": sort_items(list(character_map.values()), sort_by),
-    }
-
-
 @app.get("/api/dashboard")
 def dashboard(
     locale: str = Query(default=settings.default_locale),
     sort: str = Query(default="images"),
     session: Session = Depends(get_db),
 ) -> dict:
-    return build_dashboard_payload(locale, sort, session)
+    payload = build_dashboard_payload(locale, sort, session)
+    payload["summary"]["lastCompletedScan"] = read_scan_state().get("finished_at")
+    return payload
 
 
 @app.get("/api/library/options")

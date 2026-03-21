@@ -20,6 +20,7 @@ const SORT_HEADERS = [
   ["th-images-character", "images"],
   ["th-size-character", "size"],
 ];
+const SORT_OPTIONS = ["images", "sets", "size"];
 
 function $(id) {
   return document.getElementById(id);
@@ -100,7 +101,10 @@ function renderStaticText() {
   $("scan-last-finished-label").textContent = t("scan_last_finished");
   $("sort-kicker").textContent = t("sort_kicker");
   $("sort-title").textContent = t("sort_title");
-  $("sort-current-label").textContent = t("sort_current_label");
+  $("coser-cover-kicker").textContent = t("coser_cover_kicker");
+  $("coser-cover-title").textContent = t("coser_cover_title");
+  $("character-cover-kicker").textContent = t("character_cover_kicker");
+  $("character-cover-title").textContent = t("character_cover_title");
   $("coser-chart-kicker").textContent = t("coser_chart_kicker");
   $("coser-chart-title").textContent = t("coser_chart_title");
   $("character-chart-kicker").textContent = t("character_chart_kicker");
@@ -154,7 +158,21 @@ function renderLocaleSelects() {
 }
 
 function renderSortStatus() {
-  $("sort-current-value").textContent = t(`sort_${state.sort}`);
+  const tabs = $("sort-tabs");
+  tabs.innerHTML = "";
+  SORT_OPTIONS.forEach((value) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `sort-chip${value === state.sort ? " active" : ""}`;
+    button.setAttribute("aria-label", t("sort_by_column").replace("{label}", t(value)));
+    button.setAttribute("aria-pressed", value === state.sort ? "true" : "false");
+    button.textContent = t(value);
+    button.addEventListener("click", () => {
+      void applySort(value);
+    });
+    tabs.append(button);
+  });
+
   SORT_HEADERS.forEach(([id, value]) => {
     const cell = $(id);
     cell.setAttribute("aria-sort", value === state.sort ? "descending" : "none");
@@ -208,6 +226,69 @@ function renderSummary() {
   });
 }
 
+function coverMetricSummary(item) {
+  const parts = [
+    `${formatNumber(item.set_count)} ${t("sets")}`,
+    `${formatNumber(item.image_count)} ${t("images")}`,
+    formatBytes(item.total_size),
+  ];
+  return parts.join(" · ");
+}
+
+function coverHighlightLabel(item) {
+  return `${t(state.sort)} · ${metricValueLabel(item)}`;
+}
+
+function focusDetailPanel(panelId) {
+  $(panelId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function activateEntityFromCover(entityType, item) {
+  if (entityType === "coser") {
+    state.activeCoser = item.key;
+    $("coser-select").value = item.key;
+    void loadCoserDetail();
+    focusDetailPanel("coser-detail-panel");
+    return;
+  }
+  state.activeCharacter = item.key;
+  $("character-select").value = item.key;
+  void loadCharacterDetail();
+  focusDetailPanel("character-detail-panel");
+}
+
+function renderCoverRankingGrid(containerId, items, entityType) {
+  const container = $(containerId);
+  container.innerHTML = "";
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state">${t("empty_library")}</div>`;
+    return;
+  }
+  items.slice(0, 12).forEach((item, index) => {
+    const article = document.createElement("article");
+    article.className = "rank-cover-card";
+    const coverUrl = item.cover_set_id ? `/api/sets/${item.cover_set_id}/cover?size=560` : "";
+    article.innerHTML = `
+      <div class="rank-cover-media">
+        ${coverUrl ? `<img loading="lazy" src="${coverUrl}" alt="${escapeHtml(item.display_name)}" />` : `<div class="rank-cover-placeholder">${escapeHtml(t("not_available"))}</div>`}
+        <div class="rank-cover-overlay">
+          <span class="rank-badge">#${index + 1}</span>
+          <span class="rank-cover-stat">${escapeHtml(metricValueLabel(item))}</span>
+        </div>
+      </div>
+      <div class="rank-cover-body">
+        <p class="rank-cover-title">${escapeHtml(item.display_name)}</p>
+        <p class="rank-cover-highlight">${escapeHtml(coverHighlightLabel(item))}</p>
+        <p class="rank-cover-meta">${escapeHtml(coverMetricSummary(item))}</p>
+      </div>
+    `;
+    article.addEventListener("click", () => {
+      activateEntityFromCover(entityType, item);
+    });
+    container.append(article);
+  });
+}
+
 function renderBarList(containerId, items) {
   const container = $(containerId);
   container.innerHTML = "";
@@ -253,12 +334,13 @@ function renderTable(bodyId, items, entityType) {
         state.activeCoser = item.key;
         $("coser-select").value = item.key;
         await loadCoserDetail();
+        focusDetailPanel("coser-detail-panel");
       } else {
         state.activeCharacter = item.key;
         $("character-select").value = item.key;
         await loadCharacterDetail();
+        focusDetailPanel("character-detail-panel");
       }
-      window.scrollTo({ top: document.body.scrollHeight * 0.45, behavior: "smooth" });
     });
     body.append(row);
   });
@@ -369,6 +451,8 @@ function escapeHtml(value) {
 async function loadDashboard() {
   state.dashboard = await fetchJson(`/api/dashboard?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`);
   renderSummary();
+  renderCoverRankingGrid("coser-cover-grid", state.dashboard.cosers, "coser");
+  renderCoverRankingGrid("character-cover-grid", state.dashboard.characters, "character");
   renderBarList("coser-bar-list", state.dashboard.cosers);
   renderBarList("character-bar-list", state.dashboard.characters);
   renderTable("coser-table-body", state.dashboard.cosers, "coser");

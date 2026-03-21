@@ -10,6 +10,7 @@ This version replaces the old Streamlit prototype with a FastAPI + server-render
 - sortable statistics by clicking table headers for image count, set count, or total size
 - on-demand cover thumbnails with thumbnail cache persistence
 - export / import flows for entity translation CSV files
+- optional CLI helper to export and machine-fill translation CSVs without touching the scan schema
 - multilingual UI text driven by JSON locale files mounted from the host
 
 ## Expected library structure
@@ -161,6 +162,27 @@ CSV exports include:
 - `set_count`
 - `image_count`
 - `total_size`
+
+### CLI export + translate helper
+
+If the app has already scanned the library and you only want translation artifacts, you can avoid rescanning and operate directly on the cached database plus JSON translation files:
+
+```bash
+uv run python scripts/export_translate_entities.py \
+  --locale zh-CN \
+  --entity both \
+  --coser-strategy identity \
+  --character-strategy google
+```
+
+Defaults are intentionally conservative:
+
+- coser names use `identity` so stage names are preserved instead of being machine-mistranslated
+- character names use Google machine translation
+- the script writes exported CSVs and translated CSVs to `data/i18n/exports/`
+- unless `--skip-import` is set, it also updates the existing JSON translation store in place
+
+This flow only reads the existing cache and writes i18n files. It does not alter the scan tables or require a new full scan.
 
 ## API overview
 

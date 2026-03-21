@@ -67,16 +67,35 @@
       <section class="summary-grid" id="summary-grid"></section>
 
       <section class="panel sort-panel">
-        <div class="panel-heading">
+        <div class="sort-shell">
           <div>
             <p class="section-kicker" id="sort-kicker"></p>
             <h2 id="sort-title"></h2>
           </div>
-          <div class="sort-current">
-            <span class="sort-current-label" id="sort-current-label"></span>
-            <span class="status-pill sort-pill" id="sort-current-value"></span>
-          </div>
+          <div class="sort-tabs" id="sort-tabs"></div>
         </div>
+      </section>
+
+      <section class="two-column">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="coser-cover-kicker"></p>
+              <h2 id="coser-cover-title"></h2>
+            </div>
+          </div>
+          <div class="cover-ranking-grid" id="coser-cover-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="character-cover-kicker"></p>
+              <h2 id="character-cover-title"></h2>
+            </div>
+          </div>
+          <div class="cover-ranking-grid" id="character-cover-grid"></div>
+        </section>
       </section>
 
       <section class="two-column">
@@ -150,7 +169,7 @@
       </section>
 
       <section class="two-column">
-        <section class="panel detail-panel">
+        <section class="panel detail-panel" id="coser-detail-panel">
           <div class="panel-heading">
             <div>
               <p class="section-kicker" id="coser-detail-kicker"></p>
@@ -165,7 +184,7 @@
           <div class="card-grid" id="coser-card-grid"></div>
         </section>
 
-        <section class="panel detail-panel">
+        <section class="panel detail-panel" id="character-detail-panel">
           <div class="panel-heading">
             <div>
               <p class="section-kicker" id="character-detail-kicker"></p>

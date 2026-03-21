@@ -47,9 +47,10 @@ def list_available_locales() -> list[str]:
 
 
 def get_ui_translations(locale: str) -> dict[str, Any]:
-    fallback = _load_json(settings.ui_i18n_dir / f"{settings.default_locale}.json", {})
-    payload = fallback.copy()
+    payload = _load_json(settings.default_ui_i18n_dir / f"{settings.default_locale}.json", {}).copy()
+    payload.update(_load_json(settings.ui_i18n_dir / f"{settings.default_locale}.json", {}))
     if locale != settings.default_locale:
+        payload.update(_load_json(settings.default_ui_i18n_dir / f"{locale}.json", {}))
         payload.update(_load_json(settings.ui_i18n_dir / f"{locale}.json", {}))
     return payload
 
