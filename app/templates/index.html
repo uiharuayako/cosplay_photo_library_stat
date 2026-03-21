@@ -23,48 +23,59 @@
         </div>
       </header>
 
-      <section class="panel scan-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker" id="scan-kicker"></p>
-            <h2 id="scan-title"></h2>
+      <details class="panel scan-panel" id="scan-details">
+        <summary class="scan-summary">
+          <div class="panel-heading scan-summary-heading">
+            <div>
+              <p class="section-kicker" id="scan-kicker"></p>
+              <h2 id="scan-title"></h2>
+            </div>
+            <div class="scan-summary-meta">
+              <span class="scan-summary-text" id="scan-summary-text"></span>
+              <span class="status-pill" id="scan-state-pill"></span>
+              <span class="scan-summary-icon" aria-hidden="true"></span>
+            </div>
           </div>
-          <span class="status-pill" id="scan-state-pill"></span>
+        </summary>
+        <div class="scan-body">
+          <div class="progress-row">
+            <div class="progress-track"><div class="progress-fill" id="scan-progress-fill"></div></div>
+            <span id="scan-progress-text"></span>
+          </div>
+          <div class="scan-grid">
+            <div>
+              <span class="scan-label" id="scan-current-folder-label"></span>
+              <p class="scan-value mono" id="scan-current-folder">-</p>
+            </div>
+            <div>
+              <span class="scan-label" id="scan-current-set-label"></span>
+              <p class="scan-value" id="scan-current-set">-</p>
+            </div>
+            <div>
+              <span class="scan-label" id="scan-counts-label"></span>
+              <p class="scan-value" id="scan-counts">-</p>
+            </div>
+            <div>
+              <span class="scan-label" id="scan-last-finished-label"></span>
+              <p class="scan-value" id="scan-last-finished">-</p>
+            </div>
+          </div>
+          <p class="scan-note" id="scan-note"></p>
         </div>
-        <div class="progress-row">
-          <div class="progress-track"><div class="progress-fill" id="scan-progress-fill"></div></div>
-          <span id="scan-progress-text"></span>
-        </div>
-        <div class="scan-grid">
-          <div>
-            <span class="scan-label" id="scan-current-folder-label"></span>
-            <p class="scan-value mono" id="scan-current-folder">-</p>
-          </div>
-          <div>
-            <span class="scan-label" id="scan-current-set-label"></span>
-            <p class="scan-value" id="scan-current-set">-</p>
-          </div>
-          <div>
-            <span class="scan-label" id="scan-counts-label"></span>
-            <p class="scan-value" id="scan-counts">-</p>
-          </div>
-          <div>
-            <span class="scan-label" id="scan-last-finished-label"></span>
-            <p class="scan-value" id="scan-last-finished">-</p>
-          </div>
-        </div>
-        <p class="scan-note" id="scan-note"></p>
-      </section>
+      </details>
 
       <section class="summary-grid" id="summary-grid"></section>
 
-      <section class="panel">
+      <section class="panel sort-panel">
         <div class="panel-heading">
           <div>
             <p class="section-kicker" id="sort-kicker"></p>
             <h2 id="sort-title"></h2>
           </div>
-          <div class="segmented" id="sort-selector"></div>
+          <div class="sort-current">
+            <span class="sort-current-label" id="sort-current-label"></span>
+            <span class="status-pill sort-pill" id="sort-current-value"></span>
+          </div>
         </div>
       </section>
 

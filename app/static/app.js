@@ -12,7 +12,14 @@ const state = {
   i18nEntity: "cosers",
 };
 
-const SORT_OPTIONS = ["images", "sets", "size"];
+const SORT_HEADERS = [
+  ["th-sets-coser", "sets"],
+  ["th-images-coser", "images"],
+  ["th-size-coser", "size"],
+  ["th-sets-character", "sets"],
+  ["th-images-character", "images"],
+  ["th-size-character", "size"],
+];
 
 function $(id) {
   return document.getElementById(id);
@@ -93,6 +100,7 @@ function renderStaticText() {
   $("scan-last-finished-label").textContent = t("scan_last_finished");
   $("sort-kicker").textContent = t("sort_kicker");
   $("sort-title").textContent = t("sort_title");
+  $("sort-current-label").textContent = t("sort_current_label");
   $("coser-chart-kicker").textContent = t("coser_chart_kicker");
   $("coser-chart-title").textContent = t("coser_chart_title");
   $("character-chart-kicker").textContent = t("character_chart_kicker");
@@ -103,12 +111,6 @@ function renderStaticText() {
   $("character-table-title").textContent = t("character_table_title");
   $("th-coser-name").textContent = t("coser_name");
   $("th-character-name").textContent = t("character_name");
-  $("th-sets-coser").textContent = t("sets");
-  $("th-images-coser").textContent = t("images");
-  $("th-size-coser").textContent = t("size");
-  $("th-sets-character").textContent = t("sets");
-  $("th-images-character").textContent = t("images");
-  $("th-size-character").textContent = t("size");
   $("coser-detail-kicker").textContent = t("coser_detail_kicker");
   $("coser-detail-title").textContent = t("coser_detail_title");
   $("character-detail-kicker").textContent = t("character_detail_kicker");
@@ -151,24 +153,36 @@ function renderLocaleSelects() {
   $("i18n-entity-select").value = state.i18nEntity;
 }
 
-function renderSortSelector() {
-  const selector = $("sort-selector");
-  selector.innerHTML = "";
-  SORT_OPTIONS.forEach((value) => {
+function renderSortStatus() {
+  $("sort-current-value").textContent = t(`sort_${state.sort}`);
+  SORT_HEADERS.forEach(([id, value]) => {
+    const cell = $(id);
+    cell.setAttribute("aria-sort", value === state.sort ? "descending" : "none");
     const button = document.createElement("button");
     button.type = "button";
-    button.dataset.sort = value;
-    button.className = value === state.sort ? "active" : "";
-    button.textContent = t(`sort_${value}`);
-    button.addEventListener("click", async () => {
-      if (state.sort === value) return;
-      state.sort = value;
-      renderSortSelector();
-      await loadDashboard();
-      await refreshActiveDetails();
+    button.className = `table-sort-button${value === state.sort ? " active" : ""}`;
+    button.setAttribute("aria-label", t("sort_by_column").replace("{label}", t(value)));
+    button.setAttribute("aria-pressed", value === state.sort ? "true" : "false");
+    button.innerHTML = `
+      <span>${escapeHtml(t(value))}</span>
+      <span class="table-sort-indicator" aria-hidden="true">${value === state.sort ? "↓" : ""}</span>
+    `;
+    button.addEventListener("click", () => {
+      void applySort(value);
     });
-    selector.append(button);
+    cell.innerHTML = "";
+    cell.append(button);
   });
+}
+
+async function applySort(value) {
+  if (state.sort === value) {
+    return;
+  }
+  state.sort = value;
+  renderSortStatus();
+  await loadDashboard();
+  await refreshActiveDetails();
 }
 
 function renderSummary() {
@@ -230,9 +244,9 @@ function renderTable(bodyId, items, entityType) {
     row.innerHTML = `
       <td>${index + 1}</td>
       <td>${escapeHtml(item.display_name)}</td>
-      <td>${formatNumber(item.set_count)}</td>
-      <td>${formatNumber(item.image_count)}</td>
-      <td>${escapeHtml(formatBytes(item.total_size))}</td>
+      <td class="${state.sort === "sets" ? "active-sort-cell" : ""}">${formatNumber(item.set_count)}</td>
+      <td class="${state.sort === "images" ? "active-sort-cell" : ""}">${formatNumber(item.image_count)}</td>
+      <td class="${state.sort === "size" ? "active-sort-cell" : ""}">${escapeHtml(formatBytes(item.total_size))}</td>
     `;
     row.addEventListener("click", async () => {
       if (entityType === "coser") {
@@ -269,11 +283,20 @@ function fillEntitySelect(selectId, items, activeValue) {
 
 function renderScanStatus() {
   const scan = state.scan;
+  const scanDetails = $("scan-details");
   const running = scan?.status === "running";
   const completed = scan?.status === "completed";
   const failed = scan?.status === "failed";
   const labelKey = running ? "scan_running" : failed ? "scan_failed" : completed ? "scan_completed" : "scan_idle";
   $("scan-state-pill").textContent = t(labelKey);
+  $("scan-summary-text").textContent = running
+    ? formatTemplate(t("count_progress"), {
+        processed: formatNumber(scan?.processed_cosers || 0),
+        total: formatNumber(scan?.total_cosers || 0),
+      })
+    : scan?.finished_at
+      ? formatTemplate(t("last_scan_prefix"), { time: formatDate(scan.finished_at) })
+      : t("scan_summary_idle");
   $("scan-progress-fill").style.width = `${Math.max(0, Math.min((scan?.progress || 0) * 100, 100)).toFixed(2)}%`;
   $("scan-progress-text").textContent = formatTemplate(t("count_progress"), {
     processed: formatNumber(scan?.processed_cosers || 0),
@@ -294,6 +317,9 @@ function renderScanStatus() {
   const hasData = Boolean(state.dashboard?.summary?.totalSets || scan?.hasData);
   $("scan-button").textContent = hasData ? t("rescan") : t("start_scan");
   $("scan-button").disabled = running;
+  if (running && !scanDetails.open && state.previousScanStatus !== "running") {
+    scanDetails.open = true;
+  }
 }
 
 function detailSummary(entity) {
@@ -398,7 +424,7 @@ async function switchLocale(locale) {
   state.ui = await fetchJson(`/api/ui-translations/${encodeURIComponent(locale)}`);
   renderStaticText();
   renderLocaleSelects();
-  renderSortSelector();
+  renderSortStatus();
   await loadDashboard();
   await refreshScan();
   await refreshActiveDetails();
@@ -466,10 +492,10 @@ async function init() {
   state.ui = await fetchJson(`/api/ui-translations/${encodeURIComponent(state.locale)}`);
   renderStaticText();
   renderLocaleSelects();
-  renderSortSelector();
+  renderSortStatus();
   bindEvents();
-  await refreshScan();
   await loadDashboard();
+  await refreshScan();
   renderCards("coser-card-grid", "coser-detail-summary", null);
   renderCards("character-card-grid", "character-detail-summary", null);
   window.setInterval(refreshScan, 2000);

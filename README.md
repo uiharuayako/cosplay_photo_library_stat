@@ -7,7 +7,7 @@ This version replaces the old Streamlit prototype with a FastAPI + server-render
 - persistent scan cache stored in SQLite by default, with optional MySQL support
 - live full-scan progress updates showing the current folder and cumulative counts
 - full rankings for all cosers and all characters
-- sortable statistics by image count, set count, or total size
+- sortable statistics by clicking table headers for image count, set count, or total size
 - on-demand cover thumbnails with thumbnail cache persistence
 - export / import flows for entity translation CSV files
 - multilingual UI text driven by JSON locale files mounted from the host
@@ -131,7 +131,7 @@ Scan results are committed after the traversal finishes successfully, so a faile
 
 All ranking views default to descending image count.
 
-Users can switch sorting to:
+Users can switch sorting by clicking the metric headers in either ranking table:
 
 - image count
 - set count
