@@ -1,3 +1,7 @@
-streamlit==1.32.0
-pandas==2.2.1
-pillow==10.2.0
+fastapi==0.115.0
+jinja2==3.1.4
+pillow==10.4.0
+pymysql==1.1.1
+python-multipart==0.0.12
+sqlalchemy==2.0.36
+uvicorn[standard]==0.30.6

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosplay Photo Library Stat</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow" id="app-kicker">Cosplay Photo Library</p>
+          <h1 id="app-title">Statistics Dashboard</h1>
+          <p class="hero-copy" id="app-subtitle"></p>
+        </div>
+        <div class="hero-controls">
+          <label class="field compact-field">
+            <span id="label-locale"></span>
+            <select id="locale-select"></select>
+          </label>
+          <button class="primary-button" id="scan-button" type="button"></button>
+        </div>
+      </header>
+
+      <section class="panel scan-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="scan-kicker"></p>
+            <h2 id="scan-title"></h2>
+          </div>
+          <span class="status-pill" id="scan-state-pill"></span>
+        </div>
+        <div class="progress-row">
+          <div class="progress-track"><div class="progress-fill" id="scan-progress-fill"></div></div>
+          <span id="scan-progress-text"></span>
+        </div>
+        <div class="scan-grid">
+          <div>
+            <span class="scan-label" id="scan-current-folder-label"></span>
+            <p class="scan-value mono" id="scan-current-folder">-</p>
+          </div>
+          <div>
+            <span class="scan-label" id="scan-current-set-label"></span>
+            <p class="scan-value" id="scan-current-set">-</p>
+          </div>
+          <div>
+            <span class="scan-label" id="scan-counts-label"></span>
+            <p class="scan-value" id="scan-counts">-</p>
+          </div>
+          <div>
+            <span class="scan-label" id="scan-last-finished-label"></span>
+            <p class="scan-value" id="scan-last-finished">-</p>
+          </div>
+        </div>
+        <p class="scan-note" id="scan-note"></p>
+      </section>
+
+      <section class="summary-grid" id="summary-grid"></section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="sort-kicker"></p>
+            <h2 id="sort-title"></h2>
+          </div>
+          <div class="segmented" id="sort-selector"></div>
+        </div>
+      </section>
+
+      <section class="two-column">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="coser-chart-kicker"></p>
+              <h2 id="coser-chart-title"></h2>
+            </div>
+          </div>
+          <div class="bar-list" id="coser-bar-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="character-chart-kicker"></p>
+              <h2 id="character-chart-title"></h2>
+            </div>
+          </div>
+          <div class="bar-list" id="character-bar-list"></div>
+        </section>
+      </section>
+
+      <section class="two-column rankings">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="coser-table-kicker"></p>
+              <h2 id="coser-table-title"></h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th id="th-coser-name"></th>
+                  <th id="th-sets-coser"></th>
+                  <th id="th-images-coser"></th>
+                  <th id="th-size-coser"></th>
+                </tr>
+              </thead>
+              <tbody id="coser-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="character-table-kicker"></p>
+              <h2 id="character-table-title"></h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th id="th-character-name"></th>
+                  <th id="th-sets-character"></th>
+                  <th id="th-images-character"></th>
+                  <th id="th-size-character"></th>
+                </tr>
+              </thead>
+              <tbody id="character-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="two-column">
+        <section class="panel detail-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="coser-detail-kicker"></p>
+              <h2 id="coser-detail-title"></h2>
+            </div>
+          </div>
+          <label class="field">
+            <span id="coser-filter-label"></span>
+            <select id="coser-select"></select>
+          </label>
+          <div class="detail-summary" id="coser-detail-summary"></div>
+          <div class="card-grid" id="coser-card-grid"></div>
+        </section>
+
+        <section class="panel detail-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="character-detail-kicker"></p>
+              <h2 id="character-detail-title"></h2>
+            </div>
+          </div>
+          <label class="field">
+            <span id="character-filter-label"></span>
+            <select id="character-select"></select>
+          </label>
+          <div class="detail-summary" id="character-detail-summary"></div>
+          <div class="card-grid" id="character-card-grid"></div>
+        </section>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="i18n-kicker"></p>
+            <h2 id="i18n-title"></h2>
+          </div>
+        </div>
+        <div class="i18n-controls">
+          <label class="field compact-field">
+            <span id="i18n-locale-label"></span>
+            <select id="i18n-locale-select"></select>
+          </label>
+          <label class="field compact-field">
+            <span id="i18n-entity-label"></span>
+            <select id="i18n-entity-select"></select>
+          </label>
+          <button class="secondary-button" id="export-button" type="button"></button>
+          <label class="upload-button" for="import-file" id="import-button-label"></label>
+          <input id="import-file" type="file" accept=".csv,text/csv" hidden />
+        </div>
+        <p class="hint" id="i18n-hint"></p>
+        <p class="status-text" id="i18n-status"></p>
+      </section>
+    </div>
+
+    <template id="summary-card-template">
+      <article class="summary-card">
+        <span class="summary-label"></span>
+        <strong class="summary-value"></strong>
+      </article>
+    </template>
+
+    <script>
+      window.__APP_BOOTSTRAP__ = {
+        defaultLocale: {{ default_locale | tojson }},
+        defaultSort: {{ default_sort | tojson }},
+        libraryRoot: {{ library_root | tojson }}
+      };
+    </script>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

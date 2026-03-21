@@ -1,65 +1,183 @@
-# Cosplay Photo Library 统计面板
+# Cosplay Photo Library Stat
 
-这个应用是基于Cosplay Photo Library V3开发的，感谢收集者，项目地址：https://rentry.co/coslibraryv3
+A rebuilt web application for large-scale cosplay photo libraries.
 
-这是一个基于 Streamlit 构建的轻量级、高性能 Web 面板，专为管理和统计Cosplay Photo Library图包（百万级图片，TB 级存储）而设计。
+This version replaces the old Streamlit prototype with a FastAPI + server-rendered frontend architecture focused on:
 
-它不仅能以极快的速度完成全盘扫描与缓存，还能按 Coser 和角色维度提供详尽的数据统计、动态排行、画廊预览，并内置了无缝对接大语言模型（如 ChatGPT/Gemini）的自动化 i18n 本地化工作流。
+- persistent scan cache stored in SQLite by default, with optional MySQL support
+- live full-scan progress updates showing the current folder and cumulative counts
+- full rankings for all cosers and all characters
+- sortable statistics by image count, set count, or total size
+- on-demand cover thumbnails with thumbnail cache persistence
+- export / import flows for entity translation CSV files
+- multilingual UI text driven by JSON locale files mounted from the host
 
-## ✨ 核心特性
+## Expected library structure
 
-- **🚀 极速扫描与持久化缓存**：底层采用 `os.scandir` 直接读取文件状态，完美应对 100 万+ 张图片的文件树遍历。首次扫描后自动生成 `.csv` 缓存，后续打开“秒级”加载。
-- **📊 动态多维统计**：支持按“图包数量”、“图片总数”、“文件体积”全局动态排序。随时掌握哪些 Coser 或角色占据了最多的存储空间。
-- **🖼️ 智能画廊模式**：自动提取图包内的首张图片作为封面，前端渲染时自带分辨率压缩（缩略图机制），有效防止海量高清图片导致的浏览器内存溢出。
-- **🌐 全局多语言 (i18n)**：不仅 UI 界面支持多语言切换，更内置了强大的图包名词翻译管理系统，支持在线表格直接编辑。
-- **🤖 AI 翻译工作流**：支持一键导出未翻译的 Coser/角色名单至 CSV 文件，交给 AI 批量翻译后，直接上传并自动合并到系统字典中。
-- **🐳 优雅的容器化部署**：提供完整的 Docker 方案，数据与配置持久化映射，确保 NAS 上的原始图包绝对安全（只读挂载）。
-
-## 📂 依赖的目录架构
-
-为了让程序准确解析数据，您的图包文件夹必须严格遵循以下**两层目录 + 特定命名**的架构（就是Cosplay Photo Library V2/V3的架构）：
+The scanner expects a strict directory layout:
 
 ```text
-NAS_BASE_PATH/
-├── arty huang/                                # 第一层：Coser 名称
-│   ├── arty huang - alicization administrator/  # 第二层：图包名称 (必须包含 " - ")
-│   │   ├── 001.jpg                              # 第三层：具体的图片文件
-│   │   └── 002.jpg
+LIBRARY_ROOT/
+├── arty huang/
+│   ├── arty huang - alicization administrator/
+│   │   ├── artyhuang_alicizationadministrator_001.jpg
+│   │   └── ...
 │   └── arty huang - asuna/
-│       └── ...
 └── alexis lust/
-    └── alexis lust - triss merigold, jennefer/  # 多个角色使用英文逗号 "," 分隔
-        └── ...
+    └── alexis lust - triss merigold, jennefer/
 ```
-> **注意**：程序通过识别第二层文件夹名称中的 ` - ` 来分割 Coser 名称和角色名称。角色名末尾的数字标签（如 `nyotengu 2`）会被正则逻辑自动清洗归类。
 
-## 🐳 Docker 部署指南 (推荐)
+Rules:
 
-项目原生支持 Docker 部署，非常适合运行在 NAS 或家庭服务器上。
+- level 1 directory name = coser name
+- level 2 directory name must contain ` - `
+- the part after ` - ` is parsed as the character segment
+- multiple characters are split by English commas `,`
+- trailing numeric suffixes in characters such as `nyotengu 2` are normalized to `nyotengu`
 
-### 1. 准备工作
-确保宿主机已安装 Docker 和 Docker Compose。将项目文件（`app.py`, `requirements.txt`, `Dockerfile`, `docker-compose.yml`）放置在同一目录下。
+## Architecture
 
-### 2. 修改挂载路径
-编辑 `docker-compose.yml` 文件，将配置文件和图包的绝对路径替换为实际路径。
+### Backend
 
-### 3. 一键启动
-在项目根目录下运行以下命令：
+- FastAPI application under `app/`
+- SQLAlchemy models for cached set metadata and scan state
+- background scan worker for full library traversal
+- JSON translation files stored under the mapped data directory
+- thumbnail cache stored under the mapped data directory
+
+### Persistence layout
+
+When `DATA_DIR=/data`, the app writes:
+
+```text
+/data/
+├── cache/
+│   ├── library.sqlite3
+│   └── thumbnails/
+└── i18n/
+    ├── entities/
+    │   ├── characters.en.json
+    │   ├── characters.ja.json
+    │   ├── characters.zh-CN.json
+    │   ├── cosers.en.json
+    │   ├── cosers.ja.json
+    │   └── cosers.zh-CN.json
+    └── ui/
+        ├── en.json
+        ├── ja.json
+        └── zh-CN.json
+```
+
+The whole `/data` directory should be mounted to the host so scan cache, thumbnails, and i18n files survive container recreation.
+
+## Local run
+
 ```bash
-docker-compose up -d --build
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export LIBRARY_ROOT=/absolute/path/to/cosplay_photo_library_v3
+export DATA_DIR=$(pwd)/data
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
-服务启动后，在浏览器访问 `http://<您的服务器IP>:8501` 即可进入面板。
 
-## 🤖 如何使用 AI 批量翻译 (i18n 工作流)
+Open [http://localhost:8080](http://localhost:8080).
 
-当库中新增了大量外文命名的图包时，手动翻译非常耗时。本系统设计了专属的 AI 辅助流程：
+## Docker deployment
 
-1. **导出数据**：进入网页左侧的 `🌐 多语言管理` 菜单，选择对应的语言环境，分别点击 `导出完整列表 (CSV)` 下载包含原始名称的文件。
-2. **发送给 AI**：将下载的 `.csv` 文件发给大语言模型（如 ChatGPT / Claude / Gemini），并附上提示词：
-   > *"这是一个包含二次元图包名称的 CSV，请将 `Original_Name` 列中的罗马音/英文翻译成常用中文，填入 `Translation` 列。如无常用译名请留空。返回完整 CSV 文件。"*
-3. **一键导入**：拿到 AI 处理好的 CSV 文件后，回到面板同一个页面，点击 `上传翻译后的 CSV` 导入。系统会自动解析并永久保存在 `data/` 目录下的 JSON 字典中。刷新页面即可看到所有的本地化名称！
+### SQLite mode (recommended default)
 
-## 🛠️ 系统维护说明
+1. Copy `docker-compose.yml.example` to `docker-compose.yml`
+2. Adjust the host paths
+3. Start the container
 
-- **新增图包后如何更新？**
-  如果您向 NAS 中存入了新的图包，请在面板左侧的菜单底部点击 **“🔄 强制重新扫盘”**。系统会清除当前缓存并触发一次带进度条的深度扫描。
+```bash
+docker compose up -d --build
+```
+
+Example mapping:
+
+- host `./app_data` -> container `/data`
+- host `/path/to/cosplay_photo_library_v3` -> container `/library:ro`
+
+### Optional MySQL mode
+
+If you want metadata in MySQL instead of SQLite, replace `DATABASE_URL` with:
+
+```text
+mysql+pymysql://<username>:<password>@<mysql-host>:3306/<database>?charset=utf8mb4
+```
+
+Notes:
+
+- the image library mount is still required because covers and scans read the files directly
+- the `/data` volume is still required because thumbnails and i18n JSON files remain file-based
+- SQLite is simpler to operate for a single-instance deployment and is the default
+
+## Features
+
+### Live scan progress
+
+During a full scan, the UI shows:
+
+- current coser folder
+- current set folder
+- processed coser count vs total coser count
+- cumulative set count, image count, and total storage size
+
+Scan results are committed after the traversal finishes successfully, so a failed scan will not wipe the last successful cache.
+
+### Rankings and sorting
+
+All ranking views default to descending image count.
+
+Users can switch sorting to:
+
+- image count
+- set count
+- total file size
+
+Both coser and character dashboards respect the active sort metric.
+
+### Cover thumbnails
+
+The app stores one cover path per set and generates JPEG thumbnails on demand into `/data/cache/thumbnails`.
+
+### i18n workflow
+
+The application supports multilingual UI and multilingual entity names.
+
+- UI strings are JSON files in `/data/i18n/ui`
+- coser translations are JSON files in `/data/i18n/entities/cosers.<locale>.json`
+- character translations are JSON files in `/data/i18n/entities/characters.<locale>.json`
+- export CSV files from the UI for AI localization
+- import translated CSV files back into the app
+
+CSV exports include:
+
+- `key`
+- `raw_name`
+- `translation`
+- `set_count`
+- `image_count`
+- `total_size`
+
+## API overview
+
+- `GET /api/config`
+- `GET /api/dashboard?locale=zh-CN&sort=images`
+- `GET /api/cosers/{key}?locale=zh-CN&sort=images`
+- `GET /api/characters/{key}?locale=zh-CN&sort=images`
+- `GET /api/scan/status`
+- `POST /api/scan/start`
+- `GET /api/sets/{id}/cover`
+- `GET /api/i18n/export?entity=cosers&locale=zh-CN`
+- `POST /api/i18n/import?entity=cosers&locale=zh-CN`
+
+## Important operational notes
+
+- The scanner reads only direct image files inside each level-2 set folder.
+- Image files are never modified.
+- The recommended library mount is read-only.
+- This repository does not include your NAS data; you must mount it into the container.
+- If your deployment environment cannot reach the NAS path or MySQL host, the app will start, but scans will fail until connectivity is fixed.

@@ -1,17 +1,25 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
 
-# 设置工作目录
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DATA_DIR=/data \
+    LIBRARY_ROOT=/library \
+    PORT=8080
+
 WORKDIR /app
 
-# 安装依赖
-COPY requirements.txt .
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libjpeg62-turbo zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制代码文件
-COPY app.py .
+COPY app ./app
+COPY README.md ./README.md
 
-# 暴露 Streamlit 默认端口
-EXPOSE 8501
+RUN mkdir -p /data /library
 
-# 启动命令
-CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0"]
+EXPOSE 8080
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

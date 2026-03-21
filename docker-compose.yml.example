@@ -1,24 +1,20 @@
-version: '3.8'
-
 services:
-  cosplay-panel:
+  cosplay-library-stat:
     build: .
-    container_name: cosplay-panel
-    ports:
-      - "8501:8501" # 左侧可修改为宿主机想用的端口
-    volumes:
-      # 1. 映射 i18n JSON文件和缓存 CSV 的目录
-      # 左侧(宿主机): 在当前目录下创建一个 app_data 文件夹来存这些文件
-      # 右侧(容器内): 必须为 /app/data，与代码中配置的环境变量对应
-      - ./app_data:/app/data
-      
-      # 2. 映射 NAS 上的真实图包目录 (只读映射 :ro 以确保不会误删图片)
-      # 左侧(宿主机): 请替换为你 NAS 存放所有 Coser 图包的绝对路径! 例如 /volume1/Media/Cosplay
-      # 右侧(容器内): /app/cosplay_data
-      - /path/to/your/nas/cosplay:/app/cosplay_data:ro
-    environment:
-      # 告诉 Python 代码从哪里读取挂载进来的目录
-      - NAS_BASE_PATH=/app/cosplay_data
-      - DATA_DIR=/app/data
-      - STREAMLIT_SERVER_MAX_MESSAGE_SIZE=200 # 防止前端渲染百万级数据时断开
+    container_name: cosplay-library-stat
     restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DEFAULT_LOCALE: zh-CN
+      DATA_DIR: /data
+      LIBRARY_ROOT: /library
+      DATABASE_URL: sqlite:////data/cache/library.sqlite3
+      THUMBNAIL_SIZE: 420
+      # 如果你想改用 NAS 上的 MySQL，请把上一行 DATABASE_URL 替换为下面这种格式:
+      # DATABASE_URL: mysql+pymysql://<username>:<password>@<mysql-host>:3306/<database>?charset=utf8mb4
+    volumes:
+      # 映射缓存数据库、缩略图缓存、多语言 JSON 文件到宿主机
+      - ./app_data:/data
+      # 将宿主机上的图包目录只读挂载进容器
+      - /path/to/cosplay_photo_library_v3:/library:ro
