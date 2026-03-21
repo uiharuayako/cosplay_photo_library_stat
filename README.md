@@ -1,21 +1,21 @@
 # Cosplay Photo Library Stat
 
-A rebuilt web application for large-scale cosplay photo libraries.
+一个为大型 Cosplay 图库重构的 Web 应用。
 
-This version replaces the old Streamlit prototype with a FastAPI + server-rendered frontend architecture focused on:
+这个版本使用 FastAPI + 服务端渲染前端，替代了早期的 Streamlit 原型，重点提供以下能力：
 
-- persistent scan cache stored in SQLite by default, with optional MySQL support
-- live full-scan progress updates showing the current folder and cumulative counts
-- full rankings for all cosers and all characters
-- sortable statistics by clicking table headers for image count, set count, or total size
-- on-demand cover thumbnails with thumbnail cache persistence
-- export / import flows for entity translation CSV files
-- optional CLI helper to export and machine-fill translation CSVs without touching the scan schema
-- multilingual UI text driven by JSON locale files mounted from the host
+- 默认使用 SQLite 持久化扫描缓存，也可选用 MySQL
+- 全量扫描时实时显示当前目录与累计统计
+- 提供完整的摄影师 / 角色排行榜
+- 点击表头即可按图片数、套图数、总大小排序
+- 按需生成封面缩略图，并持久化缩略图缓存
+- 支持实体翻译 CSV 的导出 / 导入流程
+- 提供可选 CLI 工具，可在不改动扫描数据结构的前提下导出并机器翻译 CSV
+- UI 文案支持多语言，通过挂载到宿主机的 JSON 语言文件驱动
 
-## Expected library structure
+## 期望的图库目录结构
 
-The scanner expects a strict directory layout:
+扫描器要求图库目录采用固定层级：
 
 ```text
 LIBRARY_ROOT/
@@ -28,27 +28,27 @@ LIBRARY_ROOT/
     └── alexis lust - triss merigold, jennefer/
 ```
 
-Rules:
+规则如下：
 
-- level 1 directory name = coser name
-- level 2 directory name must contain ` - `
-- the part after ` - ` is parsed as the character segment
-- multiple characters are split by English commas `,`
-- trailing numeric suffixes in characters such as `nyotengu 2` are normalized to `nyotengu`
+- 第一级目录名 = coser 名称
+- 第二级目录名必须包含 ` - `
+- ` - ` 后面的部分会被解析为角色字段
+- 多个角色使用英文逗号 `,` 分隔
+- 角色名尾部的数字后缀会被归一化，例如 `nyotengu 2` 会归并为 `nyotengu`
 
-## Architecture
+## 架构
 
-### Backend
+### 后端
 
-- FastAPI application under `app/`
-- SQLAlchemy models for cached set metadata and scan state
-- background scan worker for full library traversal
-- JSON translation files stored under the mapped data directory
-- thumbnail cache stored under the mapped data directory
+- `app/` 下的 FastAPI 应用
+- 使用 SQLAlchemy 建模缓存套图元数据与扫描状态
+- 后台扫描任务负责遍历整个图库
+- JSON 翻译文件存放在挂载的数据目录中
+- 缩略图缓存同样存放在挂载的数据目录中
 
-### Persistence layout
+### 持久化目录布局
 
-When `DATA_DIR=/data`, the app writes:
+当 `DATA_DIR=/data` 时，应用会写入：
 
 ```text
 /data/
@@ -69,9 +69,9 @@ When `DATA_DIR=/data`, the app writes:
         └── zh-CN.json
 ```
 
-The whole `/data` directory should be mounted to the host so scan cache, thumbnails, and i18n files survive container recreation.
+建议把整个 `/data` 目录挂载到宿主机，这样即使容器重建，扫描缓存、缩略图和 i18n 文件也不会丢失。
 
-## Local run
+## 本地运行
 
 ```bash
 python3 -m venv .venv
@@ -82,79 +82,80 @@ export DATA_DIR=$(pwd)/data
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+启动后访问 [http://localhost:8080](http://localhost:8080)。
 
-## Docker deployment
+## Docker 部署
 
-### SQLite mode (recommended default)
+### SQLite 模式（默认推荐）
 
-1. Copy `docker-compose.yml.example` to `docker-compose.yml`
-2. Adjust the host paths
-3. Start the container
+1. 将 `docker-compose.yml.example` 复制为 `docker-compose.yml`
+2. 按实际环境修改宿主机路径
+3. 启动容器
 
 ```bash
 docker compose up -d --build
 ```
 
-Example mapping:
+示例挂载：
 
-- host `./app_data` -> container `/data`
-- host `/path/to/cosplay_photo_library_v3` -> container `/library:ro`
+- 宿主机 `./app_data` -> 容器 `/data`
+- 宿主机 `/path/to/cosplay_photo_library_v3` -> 容器 `/library:ro`
 
-### Optional MySQL mode
+### 可选 MySQL 模式
 
-If you want metadata in MySQL instead of SQLite, replace `DATABASE_URL` with:
+如果你希望把元数据存放到 MySQL，而不是 SQLite，可以将 `DATABASE_URL` 替换为下面这种格式：
 
 ```text
 mysql+pymysql://<username>:<password>@<mysql-host>:3306/<database>?charset=utf8mb4
 ```
 
-Notes:
+注意：
 
-- the image library mount is still required because covers and scans read the files directly
-- the `/data` volume is still required because thumbnails and i18n JSON files remain file-based
-- SQLite is simpler to operate for a single-instance deployment and is the default
+- 图库目录仍然必须挂载，因为封面和扫描都需要直接读取原始文件
+- `/data` 卷仍然必须保留，因为缩略图和 i18n JSON 仍然是文件存储
+- 对于单实例部署，SQLite 更简单，也是默认选项
+- 不要把真实账号、密码、内网 IP 或主机名提交到仓库
 
-## Features
+## 功能说明
 
-### Live scan progress
+### 实时扫描进度
 
-During a full scan, the UI shows:
+执行全量扫描时，界面会显示：
 
-- current coser folder
-- current set folder
-- processed coser count vs total coser count
-- cumulative set count, image count, and total storage size
+- 当前 coser 目录
+- 当前套图目录
+- 已处理 coser 数 / 总 coser 数
+- 累计套图数、图片数与总存储体积
 
-Scan results are committed after the traversal finishes successfully, so a failed scan will not wipe the last successful cache.
+扫描结果会在整次遍历成功完成后统一提交，因此如果扫描中途失败，不会覆盖上一次成功的缓存。
 
-### Rankings and sorting
+### 排行榜与排序
 
-All ranking views default to descending image count.
+所有排行榜默认按图片数量降序排列。
 
-Users can switch sorting by clicking the metric headers in either ranking table:
+用户可以点击任意排行榜表头中的指标列，在以下维度之间切换排序：
 
-- image count
-- set count
-- total file size
+- 图片数
+- 套图数
+- 文件总大小
 
-Both coser and character dashboards respect the active sort metric.
+coser 面板和角色面板都会跟随当前排序指标。
 
-### Cover thumbnails
+### 封面缩略图
 
-The app stores one cover path per set and generates JPEG thumbnails on demand into `/data/cache/thumbnails`.
+应用会为每个套图记录一条封面路径，并按需把 JPEG 缩略图生成到 `/data/cache/thumbnails`。
 
-### i18n workflow
+### i18n 流程
 
-The application supports multilingual UI and multilingual entity names.
+应用支持 UI 多语言和实体名称多语言。
 
-- UI strings are JSON files in `/data/i18n/ui`
-- coser translations are JSON files in `/data/i18n/entities/cosers.<locale>.json`
-- character translations are JSON files in `/data/i18n/entities/characters.<locale>.json`
-- export CSV files from the UI for AI localization
-- import translated CSV files back into the app
+- UI 文案文件位于 `/data/i18n/ui`
+- coser 翻译文件位于 `/data/i18n/entities/cosers.<locale>.json`
+- 角色翻译文件位于 `/data/i18n/entities/characters.<locale>.json`
+- 可在 UI 中导出 CSV，供 AI 本地化使用
+- 可将翻译后的 CSV 再导入应用
 
-CSV exports include:
+导出的 CSV 包含以下字段：
 
 - `key`
 - `raw_name`
@@ -163,9 +164,9 @@ CSV exports include:
 - `image_count`
 - `total_size`
 
-### CLI export + translate helper
+### CLI 导出与翻译辅助工具
 
-If the app has already scanned the library and you only want translation artifacts, you can avoid rescanning and operate directly on the cached database plus JSON translation files:
+如果应用已经完成过扫描，而你只想生成翻译产物，就可以跳过重新扫描，直接基于缓存数据库和 JSON 翻译文件操作：
 
 ```bash
 uv run python scripts/export_translate_entities.py \
@@ -175,16 +176,16 @@ uv run python scripts/export_translate_entities.py \
   --character-strategy google
 ```
 
-Defaults are intentionally conservative:
+默认策略比较保守：
 
-- coser names use `identity` so stage names are preserved instead of being machine-mistranslated
-- character names use Google machine translation
-- the script writes exported CSVs and translated CSVs to `data/i18n/exports/`
-- unless `--skip-import` is set, it also updates the existing JSON translation store in place
+- coser 名称默认使用 `identity`，避免艺名被机器错误翻译
+- 角色名称默认使用 Google 机器翻译
+- 脚本会把导出后的 CSV 和翻译结果写入 `data/i18n/exports/`
+- 除非指定 `--skip-import`，否则脚本还会同步更新现有 JSON 翻译文件
 
-This flow only reads the existing cache and writes i18n files. It does not alter the scan tables or require a new full scan.
+这个流程只会读取现有缓存并写入 i18n 文件，不会改动扫描表，也不需要重新做一次全量扫描。
 
-## API overview
+## API 概览
 
 - `GET /api/config`
 - `GET /api/dashboard?locale=zh-CN&sort=images`
@@ -196,10 +197,10 @@ This flow only reads the existing cache and writes i18n files. It does not alter
 - `GET /api/i18n/export?entity=cosers&locale=zh-CN`
 - `POST /api/i18n/import?entity=cosers&locale=zh-CN`
 
-## Important operational notes
+## 重要运维说明
 
-- The scanner reads only direct image files inside each level-2 set folder.
-- Image files are never modified.
-- The recommended library mount is read-only.
-- This repository does not include your NAS data; you must mount it into the container.
-- If your deployment environment cannot reach the NAS path or MySQL host, the app will start, but scans will fail until connectivity is fixed.
+- 扫描器只会读取每个二级套图目录中的直接图片文件
+- 原始图片文件不会被修改
+- 推荐将图库目录以只读方式挂载
+- 这个仓库不包含你的 NAS 数据，必须通过挂载卷注入容器
+- 如果部署环境无法访问图库挂载路径或 MySQL 主机，应用虽然能启动，但扫描会失败，直到连通性恢复
