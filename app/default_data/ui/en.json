@@ -66,7 +66,7 @@
   "i18n_entity_characters": "Character names",
   "export_csv": "Export CSV",
   "import_csv": "Import translation CSV",
-  "i18n_hint": "The exported CSV includes keys, raw names, existing translations, and stats, so it can be localized by AI and imported back. UI copy is also driven by JSON locale files.",
+  "i18n_hint": "The exported CSV only includes keys, raw names, and existing translations, so it can be localized by AI and imported back. UI copy is also driven by JSON locale files.",
   "i18n_import_success": "Imported {count} translations.",
   "empty_library": "No cached data yet. Run a full scan first.",
   "count_progress": "Processed {processed} / {total} cosers",

@@ -118,6 +118,7 @@ uv run python scripts/export_translate_entities.py \
 说明：
 
 - 导出结果默认写入 `data/i18n/exports/`
+- 导出的 CSV 仅保留 `key`、`raw_name`、`translation` 等翻译所需字段，不再混入统计列
 - 研究缓存默认写入 `data/i18n/research_cache/`
 - 除非显式传入 `--skip-import`，脚本会同步更新实体翻译 JSON
 - 翻译策略由脚本内部研究逻辑自动判断，不需要额外传 `--coser-strategy` 或 `--character-strategy`

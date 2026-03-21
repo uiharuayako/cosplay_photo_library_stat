@@ -66,7 +66,7 @@
   "i18n_entity_characters": "キャラクター名称",
   "export_csv": "CSV を出力",
   "import_csv": "翻訳 CSV を取り込む",
-  "i18n_hint": "CSV には key、原名、既存翻訳、統計値が含まれるため、AI で多言語化してから再インポートできます。UI 文言も JSON 言語ファイルで管理されます。",
+  "i18n_hint": "CSV には key、原名、既存翻訳のみが含まれるため、AI で多言語化してから再インポートできます。UI 文言も JSON 言語ファイルで管理されます。",
   "i18n_import_success": "{count} 件の翻訳を取り込みました。",
   "empty_library": "まだキャッシュ済みデータがありません。先に全体スキャンを実行してください。",
   "count_progress": "{processed} / {total} 件の coser を処理済み",

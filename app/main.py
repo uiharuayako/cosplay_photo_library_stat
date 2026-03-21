@@ -298,7 +298,7 @@ def export_translations(
     output = io.StringIO()
     writer = csv.DictWriter(
         output,
-        fieldnames=["key", "raw_name", "translation", "set_count", "image_count", "total_size"],
+        fieldnames=["key", "raw_name", "translation"],
     )
     writer.writeheader()
 
@@ -310,9 +310,6 @@ def export_translations(
                 "key": row["key"],
                 "raw_name": row["raw_name"],
                 "translation": translations.get(row["key"], ""),
-                "set_count": row["set_count"],
-                "image_count": row["image_count"],
-                "total_size": row["total_size"],
             }
         )
 

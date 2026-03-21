@@ -725,7 +725,7 @@ def research_row(entity: str, row: dict, preserve_existing: bool, cache_payload:
 def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -762,7 +762,7 @@ def process_entity(args: argparse.Namespace, entity: str) -> None:
 
     exported_path = output_dir / f"{entity}.{args.locale}.export.csv"
     translated_path = output_dir / f"{entity}.{args.locale}.translated.csv"
-    write_csv(exported_path, rows, ["key", "raw_name", "translation", "set_count", "image_count", "total_size"])
+    write_csv(exported_path, rows, ["key", "raw_name", "translation"])
 
     with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as executor:
         translated_rows = list(
@@ -784,9 +784,6 @@ def process_entity(args: argparse.Namespace, entity: str) -> None:
             "confidence",
             "source",
             "evidence",
-            "set_count",
-            "image_count",
-            "total_size",
         ],
     )
     _write_json(cache_path, cache_payload)

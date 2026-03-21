@@ -66,7 +66,7 @@
   "i18n_entity_characters": "角色名称",
   "export_csv": "导出 CSV",
   "import_csv": "导入翻译 CSV",
-  "i18n_hint": "导出的 CSV 包含 key、原名、已翻译文本以及统计数据，适合交给 AI 做多语言本地化后再导回。网页文本本身也通过 JSON 语言包管理。",
+  "i18n_hint": "导出的 CSV 只包含 key、原名和已翻译文本，适合交给 AI 做多语言本地化后再导回。网页文本本身也通过 JSON 语言包管理。",
   "i18n_import_success": "已导入 {count} 条翻译。",
   "empty_library": "当前还没有缓存数据，请先执行一次完整扫描。",
   "count_progress": "已处理 {processed} / {total} 个 coser",
