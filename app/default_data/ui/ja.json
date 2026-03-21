@@ -56,7 +56,7 @@
   "coser_filter": "coser を選択",
   "character_filter": "キャラクターを選択",
   "select_placeholder": "選択してください",
-  "detail_summary": "{sets} セット、{images} 枚、{size}",
+  "detail_summary": "{sets} セット、{images} 枚、{size}、平均画像サイズ {avgSize}",
   "detail_empty": "項目を選択するとセットの表紙を表示します。",
   "i18n_kicker": "Localization",
   "i18n_title": "名称のエクスポート / インポートと多言語管理",
@@ -73,5 +73,9 @@
   "discovered_counts": "セット {sets} ・ 画像 {images} ・ 容量 {size}",
   "last_scan_prefix": "完了時刻 {time}",
   "not_available": "なし",
-  "relative_path": "相対パス"
+  "relative_path": "相対パス",
+  "sort_avg_size": "平均画像サイズ",
+  "summary_avg_image_size": "平均画像サイズ",
+  "avg_size": "平均画像サイズ",
+  "download_ranking_image": "ランキング画像を保存"
 }

@@ -458,6 +458,17 @@ body::after {
   gap: 22px;
 }
 
+.cover-rankings-stack {
+  display: grid;
+  gap: 22px;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .bar-list {
   display: grid;
   gap: 12px;
@@ -465,7 +476,7 @@ body::after {
 
 .cover-ranking-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -754,7 +765,6 @@ tbody tr:hover {
   .summary-grid,
   .scan-grid,
   .two-column,
-  .cover-ranking-grid,
   .card-grid,
   .i18n-controls,
   .hero-controls {
@@ -776,6 +786,10 @@ tbody tr:hover {
   .sort-tabs {
     justify-content: flex-start;
   }
+
+  .cover-ranking-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -792,5 +806,13 @@ tbody tr:hover {
   th,
   td {
     padding: 10px 8px;
+  }
+
+  .cover-ranking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-actions {
+    justify-content: flex-start;
   }
 }

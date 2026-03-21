@@ -56,7 +56,7 @@
   "coser_filter": "选择 coser",
   "character_filter": "选择角色",
   "select_placeholder": "请选择",
-  "detail_summary": "共 {sets} 个图包，{images} 张图片，{size}",
+  "detail_summary": "共 {sets} 个图包，{images} 张图片，{size}，图片平均大小 {avgSize}",
   "detail_empty": "请选择一个条目来查看图包封面。",
   "i18n_kicker": "Localization",
   "i18n_title": "名称导出 / 导入与多语言",
@@ -73,5 +73,9 @@
   "discovered_counts": "图包 {sets} · 图片 {images} · 体积 {size}",
   "last_scan_prefix": "完成于 {time}",
   "not_available": "暂无",
-  "relative_path": "相对路径"
+  "relative_path": "相对路径",
+  "sort_avg_size": "按图片平均大小",
+  "summary_avg_image_size": "图片平均大小",
+  "avg_size": "图片平均大小",
+  "download_ranking_image": "下载榜单图片"
 }

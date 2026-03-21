@@ -56,7 +56,7 @@
   "coser_filter": "Select coser",
   "character_filter": "Select character",
   "select_placeholder": "Select one",
-  "detail_summary": "{sets} sets, {images} images, {size}",
+  "detail_summary": "{sets} sets, {images} images, {size}, avg {avgSize}",
   "detail_empty": "Choose an item to load its set covers.",
   "i18n_kicker": "Localization",
   "i18n_title": "Export / import names and manage multilingual data",
@@ -73,5 +73,9 @@
   "discovered_counts": "Sets {sets} · Images {images} · Size {size}",
   "last_scan_prefix": "Completed {time}",
   "not_available": "Not available",
-  "relative_path": "Relative path"
+  "relative_path": "Relative path",
+  "sort_avg_size": "Avg image size",
+  "summary_avg_image_size": "Avg image size",
+  "avg_size": "Avg image size",
+  "download_ranking_image": "Download image"
 }

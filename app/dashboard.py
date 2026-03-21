@@ -8,7 +8,7 @@ from .i18n import load_entity_translations
 from .models import SetRecord
 
 
-SORT_FIELDS = {"images": "image_count", "sets": "set_count", "size": "total_size"}
+SORT_FIELDS = {"images": "image_count", "sets": "set_count", "size": "total_size", "avg_size": "average_image_size"}
 
 
 def sort_items(items: list[dict], sort_by: str) -> list[dict]:
@@ -24,6 +24,12 @@ def format_entity_name(raw_name: str, key: str, translations: dict[str, str]) ->
     return translated or raw_name
 
 
+def calculate_average_image_size(total_size: int, image_count: int) -> float:
+    if image_count <= 0:
+        return 0
+    return total_size / image_count
+
+
 def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict:
     if sort_by not in SORT_FIELDS:
         raise HTTPException(status_code=400, detail="Unsupported sort field")
@@ -36,6 +42,7 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
 
     total_images = sum(item.image_count for item in set_rows)
     total_size = sum(item.total_size for item in set_rows)
+    average_image_size = calculate_average_image_size(total_size, total_images)
 
     coser_map: dict[str, dict] = {}
     character_map: dict[str, dict] = {}
@@ -51,11 +58,13 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
                 "image_count": 0,
                 "total_size": 0,
                 "cover_set_id": row.id,
+                "average_image_size": 0,
             },
         )
         coser_entry["set_count"] += 1
         coser_entry["image_count"] += row.image_count
         coser_entry["total_size"] += row.total_size
+        coser_entry["average_image_size"] = calculate_average_image_size(coser_entry["total_size"], coser_entry["image_count"])
 
         for relation in row.characters:
             character_entry = character_map.setdefault(
@@ -72,11 +81,13 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
                     "image_count": 0,
                     "total_size": 0,
                     "cover_set_id": row.id,
+                    "average_image_size": 0,
                 },
             )
             character_entry["set_count"] += 1
             character_entry["image_count"] += row.image_count
             character_entry["total_size"] += row.total_size
+            character_entry["average_image_size"] = calculate_average_image_size(character_entry["total_size"], character_entry["image_count"])
 
     return {
         "summary": {
@@ -85,6 +96,7 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
             "totalCharacters": len(character_map),
             "totalImages": total_images,
             "totalSize": total_size,
+            "averageImageSize": average_image_size,
         },
         "cosers": sort_items(list(coser_map.values()), sort_by),
         "characters": sort_items(list(character_map.values()), sort_by),

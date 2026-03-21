@@ -16,11 +16,13 @@ const SORT_HEADERS = [
   ["th-sets-coser", "sets"],
   ["th-images-coser", "images"],
   ["th-size-coser", "size"],
+  ["th-avg-size-coser", "avg_size"],
   ["th-sets-character", "sets"],
   ["th-images-character", "images"],
   ["th-size-character", "size"],
+  ["th-avg-size-character", "avg_size"],
 ];
-const SORT_OPTIONS = ["images", "sets", "size"];
+const SORT_OPTIONS = ["images", "sets", "size", "avg_size"];
 
 function $(id) {
   return document.getElementById(id);
@@ -71,13 +73,15 @@ function formatDate(value) {
 function metricValue(item) {
   if (state.sort === "images") return item.image_count;
   if (state.sort === "sets") return item.set_count;
-  return item.total_size;
+  if (state.sort === "size") return item.total_size;
+  return item.average_image_size;
 }
 
 function metricValueLabel(item) {
   if (state.sort === "images") return formatNumber(item.image_count);
   if (state.sort === "sets") return formatNumber(item.set_count);
-  return formatBytes(item.total_size);
+  if (state.sort === "size") return formatBytes(item.total_size);
+  return formatBytes(item.average_image_size);
 }
 
 async function fetchJson(url, options) {
@@ -103,8 +107,10 @@ function renderStaticText() {
   $("sort-title").textContent = t("sort_title");
   $("coser-cover-kicker").textContent = t("coser_cover_kicker");
   $("coser-cover-title").textContent = t("coser_cover_title");
+  $("coser-cover-download").textContent = t("download_ranking_image");
   $("character-cover-kicker").textContent = t("character_cover_kicker");
   $("character-cover-title").textContent = t("character_cover_title");
+  $("character-cover-download").textContent = t("download_ranking_image");
   $("coser-chart-kicker").textContent = t("coser_chart_kicker");
   $("coser-chart-title").textContent = t("coser_chart_title");
   $("character-chart-kicker").textContent = t("character_chart_kicker");
@@ -217,6 +223,7 @@ function renderSummary() {
     ["summary_total_characters", formatNumber(summary.totalCharacters)],
     ["summary_total_images", formatNumber(summary.totalImages)],
     ["summary_total_size", formatBytes(summary.totalSize)],
+    ["summary_avg_image_size", formatBytes(summary.averageImageSize)],
   ];
   cards.forEach(([labelKey, value]) => {
     const fragment = template.content.cloneNode(true);
@@ -231,6 +238,7 @@ function coverMetricSummary(item) {
     `${formatNumber(item.set_count)} ${t("sets")}`,
     `${formatNumber(item.image_count)} ${t("images")}`,
     formatBytes(item.total_size),
+    `${t("avg_size")} ${formatBytes(item.average_image_size)}`,
   ];
   return parts.join(" · ");
 }
@@ -317,7 +325,7 @@ function renderTable(bodyId, items, entityType) {
   const body = $(bodyId);
   body.innerHTML = "";
   if (!items.length) {
-    body.innerHTML = `<tr><td colspan="5"><div class="empty-state">${t("empty_library")}</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="6"><div class="empty-state">${t("empty_library")}</div></td></tr>`;
     return;
   }
   items.forEach((item, index) => {
@@ -328,6 +336,7 @@ function renderTable(bodyId, items, entityType) {
       <td class="${state.sort === "sets" ? "active-sort-cell" : ""}">${formatNumber(item.set_count)}</td>
       <td class="${state.sort === "images" ? "active-sort-cell" : ""}">${formatNumber(item.image_count)}</td>
       <td class="${state.sort === "size" ? "active-sort-cell" : ""}">${escapeHtml(formatBytes(item.total_size))}</td>
+      <td class="${state.sort === "avg_size" ? "active-sort-cell" : ""}">${escapeHtml(formatBytes(item.average_image_size))}</td>
     `;
     row.addEventListener("click", async () => {
       if (entityType === "coser") {
@@ -409,6 +418,7 @@ function detailSummary(entity) {
     sets: formatNumber(entity.setCount),
     images: formatNumber(entity.imageCount),
     size: formatBytes(entity.totalSize),
+    avgSize: formatBytes(entity.averageImageSize),
   });
 }
 
@@ -431,7 +441,7 @@ function renderCards(containerId, summaryId, payload) {
       <div>
         <p class="cover-title">${escapeHtml(item.setName)}</p>
         <p class="cover-meta">${escapeHtml(characters || t("not_available"))}</p>
-        <p class="cover-meta">${formatNumber(item.imageCount)} ${escapeHtml(t("images"))} · ${escapeHtml(formatBytes(item.totalSize))}</p>
+        <p class="cover-meta">${formatNumber(item.imageCount)} ${escapeHtml(t("images"))} · ${escapeHtml(formatBytes(item.totalSize))} · ${escapeHtml(t("avg_size"))} ${escapeHtml(formatBytes(item.averageImageSize))}</p>
         <p class="cover-path">${escapeHtml(t("relative_path"))}: ${escapeHtml(item.relativePath)}</p>
       </div>
     `;
@@ -453,6 +463,8 @@ async function loadDashboard() {
   renderSummary();
   renderCoverRankingGrid("coser-cover-grid", state.dashboard.cosers, "coser");
   renderCoverRankingGrid("character-cover-grid", state.dashboard.characters, "character");
+  $("coser-cover-download").disabled = !state.dashboard.cosers.length;
+  $("character-cover-download").disabled = !state.dashboard.characters.length;
   renderBarList("coser-bar-list", state.dashboard.cosers);
   renderBarList("character-bar-list", state.dashboard.characters);
   renderTable("coser-table-body", state.dashboard.cosers, "coser");
@@ -539,11 +551,27 @@ async function importTranslations(file) {
   }
 }
 
+function downloadRanking(entityType) {
+  const url = `/api/rankings/${encodeURIComponent(entityType)}/poster?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`;
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
 function bindEvents() {
   $("locale-select").addEventListener("change", async (event) => {
     await switchLocale(event.target.value);
   });
   $("scan-button").addEventListener("click", startScan);
+  $("coser-cover-download").addEventListener("click", () => {
+    downloadRanking("cosers");
+  });
+  $("character-cover-download").addEventListener("click", () => {
+    downloadRanking("characters");
+  });
   $("coser-select").addEventListener("change", loadCoserDetail);
   $("character-select").addEventListener("change", loadCharacterDetail);
   $("i18n-locale-select").addEventListener("change", (event) => {
