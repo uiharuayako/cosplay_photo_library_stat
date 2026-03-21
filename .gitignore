@@ -1,9 +1,30 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.venv/
-.python-version
-app_data/
-data/
+# macOS
 .DS_Store
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+
+# Virtual environments and local tooling
+.venv/
+.env
+.env.*
+.python-version
+.codex/
+.idea/
+.vscode/
+
+# Local runtime data
+/data/
+/app_data/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

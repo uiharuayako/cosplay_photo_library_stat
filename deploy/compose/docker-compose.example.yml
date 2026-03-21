@@ -1,6 +1,8 @@
 services:
   cosplay-library-stat:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: cosplay-library-stat
     restart: unless-stopped
     ports:
@@ -14,7 +16,5 @@ services:
       # 如果你想改用 MySQL，请把上一行 DATABASE_URL 替换为下面这种格式:
       # DATABASE_URL: mysql+pymysql://<username>:<password>@<mysql-host>:3306/<database>?charset=utf8mb4
     volumes:
-      # 映射缓存数据库、缩略图缓存、多语言 JSON 文件到宿主机
       - ./app_data:/data
-      # 将宿主机上的图包目录只读挂载进容器
       - /path/to/cosplay_photo_library_v3:/library:ro
