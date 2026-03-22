@@ -123,6 +123,28 @@ uv run python scripts/export_translate_entities.py \
 - 除非显式传入 `--skip-import`，脚本会同步更新实体翻译 JSON
 - 翻译策略由脚本内部研究逻辑自动判断，不需要额外传 `--coser-strategy` 或 `--character-strategy`
 
+如果要补齐更困难的中文翻译，可以对 `translate/zhcn/*.csv` 使用本地规则加可选的大模型兜底：
+
+```bash
+mkdir -p ~/.config/cosplay-photo-library-stat
+cat > ~/.config/cosplay-photo-library-stat/llm.env <<'EOF'
+COSPLAY_TRANSLATOR_LLM_BASE_URL=<your-local-endpoint>
+COSPLAY_TRANSLATOR_LLM_MODEL=<your-local-model-name>
+COSPLAY_TRANSLATOR_LLM_API_KEY=<your-local-api-key>
+EOF
+
+uv run python scripts/fill_translate_csv_zhcn.py --entity both --use-llm
+```
+
+说明：
+
+- 默认不调用大模型，只有显式传入 `--use-llm` 才会触发，避免不必要花费
+- LLM 只会处理本地规则仍未解决的条目
+- 结果默认缓存到 `data/i18n/llm_cache/`，后续重复运行会复用缓存
+- LLM 配置默认从 `~/.config/cosplay-photo-library-stat/llm.env` 读取，也可以改用当前 shell 的环境变量
+- 不要把任何真实的 API 端点、模型名、密钥写进仓库；这是一个公开仓库
+- 单条查询也可以直接运行 `uv run python scripts/llm_cosplay_translator.py character "viper"` 或 `uv run python scripts/llm_cosplay_translator.py coser-name "okada yui"`
+
 ## GitHub Actions 镜像构建
 
 仓库内置 `/.github/workflows/docker-image.yml`，在以下场景自动构建并推送镜像：

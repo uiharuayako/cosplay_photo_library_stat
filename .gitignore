@@ -15,10 +15,16 @@ htmlcov/
 .venv/
 .env
 .env.*
+.envrc
+.direnv/
 .python-version
 .codex/
 .idea/
 .vscode/
+.secrets/
+secrets/
+config/local/
+local/
 
 # Local runtime data
 /data/
