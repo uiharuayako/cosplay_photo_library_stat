@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from statistics import median
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -9,6 +11,12 @@ from .models import SetRecord
 
 
 SORT_FIELDS = {"images": "image_count", "sets": "set_count", "size": "total_size", "avg_size": "average_image_size"}
+STAT_FIELDS = {
+    "sets": "set_count",
+    "images": "image_count",
+    "size": "total_size",
+    "avg_size": "average_image_size",
+}
 
 
 def sort_items(items: list[dict], sort_by: str) -> list[dict]:
@@ -28,6 +36,76 @@ def calculate_average_image_size(total_size: int, image_count: int) -> float:
     if image_count <= 0:
         return 0
     return total_size / image_count
+
+
+def calculate_variance(values: list[float]) -> float:
+    if len(values) <= 1:
+        return 0.0
+    mean_value = sum(values) / len(values)
+    return sum((value - mean_value) ** 2 for value in values) / len(values)
+
+
+def build_histogram(values: list[float], bin_count: int = 8) -> dict:
+    if not values:
+        return {"bins": [], "min": 0, "max": 0, "maxCount": 0}
+
+    minimum = min(values)
+    maximum = max(values)
+    if minimum == maximum:
+        return {
+            "bins": [{"start": minimum, "end": maximum, "count": len(values)}],
+            "min": minimum,
+            "max": maximum,
+            "maxCount": len(values),
+        }
+
+    step = (maximum - minimum) / bin_count
+    counts = [0] * bin_count
+    for value in values:
+        index = min(int((value - minimum) / step), bin_count - 1)
+        counts[index] += 1
+
+    bins = []
+    for index, count in enumerate(counts):
+        start = minimum + (step * index)
+        end = maximum if index == bin_count - 1 else minimum + (step * (index + 1))
+        bins.append({"start": start, "end": end, "count": count})
+
+    return {
+        "bins": bins,
+        "min": minimum,
+        "max": maximum,
+        "maxCount": max(counts),
+    }
+
+
+def build_metric_statistics(items: list[dict]) -> dict:
+    metrics: dict[str, dict] = {}
+    for key, field in STAT_FIELDS.items():
+        values = [float(item[field]) for item in items]
+        if not values:
+            metrics[key] = {
+                "count": 0,
+                "total": 0,
+                "mean": 0,
+                "median": 0,
+                "variance": 0,
+                "min": 0,
+                "max": 0,
+                "histogram": {"bins": [], "min": 0, "max": 0, "maxCount": 0},
+            }
+            continue
+        metrics[key] = {
+            "count": len(values),
+            "total": sum(values),
+            "mean": sum(values) / len(values),
+            "median": median(values),
+            "variance": calculate_variance(values),
+            "min": min(values),
+            "max": max(values),
+            "histogram": build_histogram(values),
+        }
+    return metrics
 
 
 def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict:
@@ -89,6 +167,9 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
             character_entry["total_size"] += row.total_size
             character_entry["average_image_size"] = calculate_average_image_size(character_entry["total_size"], character_entry["image_count"])
 
+    cosers = sort_items(list(coser_map.values()), sort_by)
+    characters = sort_items(list(character_map.values()), sort_by)
+
     return {
         "summary": {
             "totalCosers": len(coser_map),
@@ -98,6 +179,10 @@ def build_dashboard_payload(locale: str, sort_by: str, session: Session) -> dict
             "totalSize": total_size,
             "averageImageSize": average_image_size,
         },
-        "cosers": sort_items(list(coser_map.values()), sort_by),
-        "characters": sort_items(list(character_map.values()), sort_by),
+        "cosers": cosers,
+        "characters": characters,
+        "statistics": {
+            "cosers": {"entityCount": len(cosers), "metrics": build_metric_statistics(cosers)},
+            "characters": {"entityCount": len(characters), "metrics": build_metric_statistics(characters)},
+        },
     }

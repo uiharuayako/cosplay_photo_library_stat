@@ -66,6 +66,28 @@
 
       <section class="summary-grid" id="summary-grid"></section>
 
+      <section class="two-column stats-section">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="coser-stats-kicker"></p>
+              <h2 id="coser-stats-title"></h2>
+            </div>
+          </div>
+          <div class="metric-stat-grid" id="coser-stats-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker" id="character-stats-kicker"></p>
+              <h2 id="character-stats-title"></h2>
+            </div>
+          </div>
+          <div class="metric-stat-grid" id="character-stats-grid"></div>
+        </section>
+      </section>
+
       <section class="panel sort-panel">
         <div class="sort-shell">
           <div>
@@ -77,7 +99,7 @@
       </section>
 
       <section class="cover-rankings-stack">
-        <section class="panel">
+        <section class="panel" id="coser-cover-panel">
           <div class="panel-heading">
             <div>
               <p class="section-kicker" id="coser-cover-kicker"></p>
@@ -90,7 +112,7 @@
           <div class="cover-ranking-grid" id="coser-cover-grid"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="character-cover-panel">
           <div class="panel-heading">
             <div>
               <p class="section-kicker" id="character-cover-kicker"></p>
@@ -237,6 +259,23 @@
       <article class="summary-card">
         <span class="summary-label"></span>
         <strong class="summary-value"></strong>
+      </article>
+    </template>
+
+    <template id="metric-stat-card-template">
+      <article class="metric-stat-card">
+        <div class="metric-stat-header">
+          <span class="metric-stat-label"></span>
+          <strong class="metric-stat-primary"></strong>
+        </div>
+        <div class="metric-stat-meta"></div>
+        <div class="metric-stat-chart">
+          <div class="histogram" aria-hidden="true"></div>
+          <div class="histogram-scale">
+            <span class="histogram-min"></span>
+            <span class="histogram-max"></span>
+          </div>
+        </div>
       </article>
     </template>
 

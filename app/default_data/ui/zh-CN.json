@@ -77,5 +77,15 @@
   "sort_avg_size": "按图片平均大小",
   "summary_avg_image_size": "图片平均大小",
   "avg_size": "图片平均大小",
-  "download_ranking_image": "下载榜单图片"
+  "download_ranking_image": "下载榜单图片",
+  "coser_stats_kicker": "Statistics",
+  "coser_stats_title": "Coser 指标分布",
+  "character_stats_kicker": "Statistics",
+  "character_stats_title": "角色指标分布",
+  "mean": "均值",
+  "median": "中位数",
+  "variance": "方差",
+  "min": "最小值",
+  "max": "最大值",
+  "histogram_bin_tooltip": "{start} - {end}: {count}"
 }

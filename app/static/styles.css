@@ -312,6 +312,10 @@ body::after {
   margin-bottom: 22px;
 }
 
+.stats-section {
+  margin-bottom: 22px;
+}
+
 .summary-card {
   position: relative;
   background: var(--panel-strong);
@@ -478,6 +482,89 @@ body::after {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
+}
+
+.metric-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.metric-stat-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(53, 38, 29, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 238, 229, 0.78));
+}
+
+.metric-stat-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metric-stat-label {
+  color: var(--muted);
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.metric-stat-primary {
+  font-size: 1.3rem;
+  color: var(--accent-dark);
+}
+
+.metric-stat-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, auto));
+  gap: 8px 14px;
+  align-items: baseline;
+}
+
+.metric-stat-meta span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.metric-stat-meta strong {
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.metric-stat-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.histogram {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+  min-height: 104px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(53, 38, 29, 0.04);
+}
+
+.histogram-bar {
+  display: block;
+  min-height: 8px;
+  border-radius: 999px 999px 6px 6px;
+  background: linear-gradient(180deg, rgba(197, 91, 59, 0.92), rgba(38, 98, 90, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.histogram-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .rank-cover-card {
@@ -765,6 +852,7 @@ tbody tr:hover {
   .summary-grid,
   .scan-grid,
   .two-column,
+  .metric-stat-grid,
   .card-grid,
   .i18n-controls,
   .hero-controls {

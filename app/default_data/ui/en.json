@@ -77,5 +77,15 @@
   "sort_avg_size": "Avg image size",
   "summary_avg_image_size": "Avg image size",
   "avg_size": "Avg image size",
-  "download_ranking_image": "Download image"
+  "download_ranking_image": "Download image",
+  "coser_stats_kicker": "Statistics",
+  "coser_stats_title": "Coser metric distributions",
+  "character_stats_kicker": "Statistics",
+  "character_stats_title": "Character metric distributions",
+  "mean": "Mean",
+  "median": "Median",
+  "variance": "Variance",
+  "min": "Min",
+  "max": "Max",
+  "histogram_bin_tooltip": "{start} - {end}: {count}"
 }

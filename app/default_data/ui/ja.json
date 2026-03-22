@@ -77,5 +77,15 @@
   "sort_avg_size": "平均画像サイズ",
   "summary_avg_image_size": "平均画像サイズ",
   "avg_size": "平均画像サイズ",
-  "download_ranking_image": "ランキング画像を保存"
+  "download_ranking_image": "ランキング画像を保存",
+  "coser_stats_kicker": "Statistics",
+  "coser_stats_title": "Coser 指標分布",
+  "character_stats_kicker": "Statistics",
+  "character_stats_title": "Character 指標分布",
+  "mean": "平均",
+  "median": "中央値",
+  "variance": "分散",
+  "min": "最小",
+  "max": "最大",
+  "histogram_bin_tooltip": "{start} - {end}: {count}"
 }

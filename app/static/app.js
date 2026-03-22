@@ -23,6 +23,7 @@ const SORT_HEADERS = [
   ["th-avg-size-character", "avg_size"],
 ];
 const SORT_OPTIONS = ["images", "sets", "size", "avg_size"];
+const METRIC_OPTIONS = ["sets", "images", "size", "avg_size"];
 
 function $(id) {
   return document.getElementById(id);
@@ -38,6 +39,14 @@ function formatTemplate(template, values = {}) {
 
 function formatNumber(value) {
   return new Intl.NumberFormat(state.locale).format(value || 0);
+}
+
+function formatDecimal(value, maximumFractionDigits = 2) {
+  const number = Number(value || 0);
+  return number.toLocaleString(state.locale, {
+    maximumFractionDigits,
+    minimumFractionDigits: maximumFractionDigits === 0 ? 0 : 2,
+  });
 }
 
 function formatBytes(bytes) {
@@ -70,6 +79,14 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function sanitizeFilenamePart(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "ranking";
+}
+
 function metricValue(item) {
   if (state.sort === "images") return item.image_count;
   if (state.sort === "sets") return item.set_count;
@@ -82,6 +99,35 @@ function metricValueLabel(item) {
   if (state.sort === "sets") return formatNumber(item.set_count);
   if (state.sort === "size") return formatBytes(item.total_size);
   return formatBytes(item.average_image_size);
+}
+
+function formatMetricValue(metricKey, value, options = {}) {
+  const { compact = false } = options;
+  if (metricKey === "size" || metricKey === "avg_size") {
+    return formatBytes(value);
+  }
+  if (compact) {
+    return formatDecimal(value, 2);
+  }
+  return formatNumber(Math.round(value || 0));
+}
+
+function formatVariance(metricKey, value) {
+  const variance = Number(value || 0);
+  if (!Number.isFinite(variance) || variance <= 0) {
+    return "0";
+  }
+  if (metricKey === "size" || metricKey === "avg_size") {
+    const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+    let unitIndex = 0;
+    let scale = 1;
+    while (Math.sqrt(variance) >= scale * 1024 && unitIndex < units.length - 1) {
+      scale *= 1024;
+      unitIndex += 1;
+    }
+    return `${formatDecimal(variance / (scale * scale), 2)} ${units[unitIndex]}^2`;
+  }
+  return formatDecimal(variance, 2);
 }
 
 async function fetchJson(url, options) {
@@ -115,6 +161,10 @@ function renderStaticText() {
   $("coser-chart-title").textContent = t("coser_chart_title");
   $("character-chart-kicker").textContent = t("character_chart_kicker");
   $("character-chart-title").textContent = t("character_chart_title");
+  $("coser-stats-kicker").textContent = t("coser_stats_kicker");
+  $("coser-stats-title").textContent = t("coser_stats_title");
+  $("character-stats-kicker").textContent = t("character_stats_kicker");
+  $("character-stats-title").textContent = t("character_stats_title");
   $("coser-table-kicker").textContent = t("coser_table_kicker");
   $("coser-table-title").textContent = t("coser_table_title");
   $("character-table-kicker").textContent = t("character_table_kicker");
@@ -229,6 +279,60 @@ function renderSummary() {
     const fragment = template.content.cloneNode(true);
     fragment.querySelector(".summary-label").textContent = t(labelKey);
     fragment.querySelector(".summary-value").textContent = value;
+    container.append(fragment);
+  });
+}
+
+function buildMetricSummaryRows(metricKey, metricStats) {
+  return [
+    [t("mean"), formatMetricValue(metricKey, metricStats.mean, { compact: true })],
+    [t("median"), formatMetricValue(metricKey, metricStats.median, { compact: true })],
+    [t("variance"), formatVariance(metricKey, metricStats.variance)],
+    [t("min"), formatMetricValue(metricKey, metricStats.min)],
+    [t("max"), formatMetricValue(metricKey, metricStats.max)],
+  ];
+}
+
+function renderMetricStats(containerId, statsPayload) {
+  const container = $(containerId);
+  container.innerHTML = "";
+  if (!statsPayload?.metrics) {
+    container.innerHTML = `<div class="empty-state">${t("empty_library")}</div>`;
+    return;
+  }
+  const template = $("metric-stat-card-template");
+  METRIC_OPTIONS.forEach((metricKey) => {
+    const metricStats = statsPayload.metrics[metricKey];
+    if (!metricStats) {
+      return;
+    }
+    const fragment = template.content.cloneNode(true);
+    fragment.querySelector(".metric-stat-label").textContent = t(metricKey);
+    fragment.querySelector(".metric-stat-primary").textContent = formatMetricValue(metricKey, metricStats.mean, { compact: true });
+
+    const meta = fragment.querySelector(".metric-stat-meta");
+    meta.innerHTML = buildMetricSummaryRows(metricKey, metricStats)
+      .map(([label, value]) => `<span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong>`)
+      .join("");
+
+    const histogram = fragment.querySelector(".histogram");
+    const bins = metricStats.histogram?.bins || [];
+    const maxCount = Math.max(metricStats.histogram?.maxCount || 0, 1);
+    histogram.innerHTML = bins.length
+      ? bins
+          .map((bin) => {
+            const height = Math.max((bin.count / maxCount) * 100, bin.count ? 12 : 4);
+            return `<span class="histogram-bar" style="height:${height.toFixed(2)}%" title="${escapeHtml(formatTemplate(t("histogram_bin_tooltip"), {
+              start: formatMetricValue(metricKey, bin.start, { compact: true }),
+              end: formatMetricValue(metricKey, bin.end, { compact: true }),
+              count: formatNumber(bin.count),
+            }))}"></span>`;
+          })
+          .join("")
+      : `<div class="empty-state">${escapeHtml(t("empty_library"))}</div>`;
+
+    fragment.querySelector(".histogram-min").textContent = formatMetricValue(metricKey, metricStats.histogram?.min || 0, { compact: true });
+    fragment.querySelector(".histogram-max").textContent = formatMetricValue(metricKey, metricStats.histogram?.max || 0, { compact: true });
     container.append(fragment);
   });
 }
@@ -461,6 +565,8 @@ function escapeHtml(value) {
 async function loadDashboard() {
   state.dashboard = await fetchJson(`/api/dashboard?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`);
   renderSummary();
+  renderMetricStats("coser-stats-grid", state.dashboard.statistics?.cosers);
+  renderMetricStats("character-stats-grid", state.dashboard.statistics?.characters);
   renderCoverRankingGrid("coser-cover-grid", state.dashboard.cosers, "coser");
   renderCoverRankingGrid("character-cover-grid", state.dashboard.characters, "character");
   $("coser-cover-download").disabled = !state.dashboard.cosers.length;
@@ -552,13 +658,143 @@ async function importTranslations(file) {
 }
 
 function downloadRanking(entityType) {
-  const url = `/api/rankings/${encodeURIComponent(entityType)}/poster?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`;
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "";
-  document.body.append(link);
-  link.click();
-  link.remove();
+  void downloadRankingSection(entityType);
+}
+
+function inlineComputedStyles(sourceNode, clonedNode) {
+  if (!(sourceNode instanceof Element) || !(clonedNode instanceof Element)) {
+    return;
+  }
+  const computedStyle = window.getComputedStyle(sourceNode);
+  const styleText = Array.from(computedStyle).map((name) => `${name}:${computedStyle.getPropertyValue(name)};`).join("");
+  clonedNode.setAttribute("style", styleText);
+
+  if (clonedNode instanceof HTMLImageElement && sourceNode instanceof HTMLImageElement) {
+    clonedNode.setAttribute("src", sourceNode.currentSrc || sourceNode.src);
+    clonedNode.setAttribute("loading", "eager");
+    clonedNode.setAttribute("decoding", "sync");
+  }
+
+  const sourceChildren = Array.from(sourceNode.childNodes);
+  const clonedChildren = Array.from(clonedNode.childNodes);
+  for (let index = 0; index < sourceChildren.length; index += 1) {
+    inlineComputedStyles(sourceChildren[index], clonedChildren[index]);
+  }
+}
+
+async function ensureImagesReady(node) {
+  const images = Array.from(node.querySelectorAll("img"));
+  await Promise.all(
+    images.map(async (img) => {
+      if (img.complete && img.naturalWidth > 0) {
+        return;
+      }
+      await new Promise((resolve) => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    }),
+  );
+}
+
+async function renderNodeToBlob(target) {
+  await ensureImagesReady(target);
+
+  const rect = target.getBoundingClientRect();
+  const width = Math.ceil(rect.width);
+  const height = Math.ceil(rect.height);
+  const clone = target.cloneNode(true);
+  inlineComputedStyles(target, clone);
+
+  clone.querySelectorAll("button").forEach((button) => {
+    button.remove();
+  });
+  clone.querySelectorAll("[aria-hidden='true']").forEach((node) => {
+    if (node.classList?.contains("scan-summary-icon")) {
+      node.remove();
+    }
+  });
+
+  const wrapper = document.createElement("div");
+  wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+  wrapper.style.width = `${width}px`;
+  wrapper.style.height = `${height}px`;
+  wrapper.style.padding = "0";
+  wrapper.style.margin = "0";
+  wrapper.style.background = window.getComputedStyle(document.body).backgroundColor || "#f7f4ed";
+  wrapper.append(clone);
+
+  const serialized = new XMLSerializer().serializeToString(wrapper);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+      <foreignObject width="100%" height="100%">${serialized}</foreignObject>
+    </svg>
+  `;
+  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Failed to render ranking section"));
+      img.src = url;
+    });
+    const scale = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas is not available");
+    }
+    context.scale(scale, scale);
+    context.drawImage(image, 0, 0, width, height);
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((canvasBlob) => {
+        if (canvasBlob) {
+          resolve(canvasBlob);
+        } else {
+          reject(new Error("Failed to create ranking image"));
+        }
+      }, "image/png");
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+async function downloadRankingSection(entityType) {
+  const panelId = entityType === "cosers" ? "coser-cover-panel" : "character-cover-panel";
+  const panel = $(panelId);
+  if (!panel) {
+    throw new Error(`Ranking panel not found: ${panelId}`);
+  }
+
+  try {
+    const blob = await renderNodeToBlob(panel);
+    const filename = `${sanitizeFilenamePart(entityType)}-${sanitizeFilenamePart(state.sort)}-${sanitizeFilenamePart(state.locale)}.png`;
+    await triggerBlobDownload(blob, filename);
+  } catch (error) {
+    console.error(error);
+    const url = `/api/rankings/${encodeURIComponent(entityType)}/poster?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`;
+    window.open(url, "_blank", "noopener");
+  }
 }
 
 function bindEvents() {
