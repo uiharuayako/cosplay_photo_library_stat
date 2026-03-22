@@ -10,7 +10,14 @@ const state = {
   activeCharacter: "",
   i18nLocale: window.__APP_BOOTSTRAP__.defaultLocale,
   i18nEntity: "cosers",
+  gallerySet: null,
+  galleryImageIndex: 0,
+  gallerySearch: "",
+  galleryVisibleCount: 0,
+  galleryObserver: null,
 };
+
+const GALLERY_PAGE_SIZE = 80;
 
 const SORT_HEADERS = [
   ["th-sets-coser", "sets"],
@@ -31,6 +38,19 @@ function $(id) {
 
 function t(key) {
   return state.ui[key] || key;
+}
+
+function galleryTitle(payload) {
+  return `${payload.setName} · ${payload.coser.displayName}`;
+}
+
+function getFilteredGalleryImages() {
+  const images = state.gallerySet?.images || [];
+  const query = state.gallerySearch.trim().toLowerCase();
+  if (!query) {
+    return images;
+  }
+  return images.filter((image) => image.fileName.toLowerCase().includes(query));
 }
 
 function formatTemplate(template, values = {}) {
@@ -175,6 +195,14 @@ function renderStaticText() {
   $("coser-detail-title").textContent = t("coser_detail_title");
   $("character-detail-kicker").textContent = t("character_detail_kicker");
   $("character-detail-title").textContent = t("character_detail_title");
+  $("gallery-kicker").textContent = t("coser_detail_kicker");
+  $("gallery-title").textContent = t("gallery_title");
+  $("gallery-search-label").textContent = t("gallery_search");
+  $("gallery-search").placeholder = t("gallery_search_placeholder");
+  $("gallery-results").textContent = "";
+  $("gallery-load-more").textContent = t("load_more_images");
+  $("viewer-prev").textContent = t("previous_image");
+  $("viewer-next").textContent = t("next_image");
   $("coser-filter-label").textContent = t("coser_filter");
   $("character-filter-label").textContent = t("character_filter");
   $("i18n-kicker").textContent = t("i18n_kicker");
@@ -184,6 +212,8 @@ function renderStaticText() {
   $("export-button").textContent = t("export_csv");
   $("import-button-label").textContent = t("import_csv");
   $("i18n-hint").textContent = t("i18n_hint");
+  $("gallery-close").textContent = t("close");
+  $("viewer-close").textContent = t("close");
 }
 
 function renderLocaleSelects() {
@@ -541,16 +571,194 @@ function renderCards(containerId, summaryId, payload) {
     article.className = "cover-card";
     const characters = item.characters.map((character) => character.displayName).join(", ");
     article.innerHTML = `
-      <img loading="lazy" src="${item.coverUrl}?size=420" alt="${escapeHtml(item.setName)}" />
+      <button class="cover-card-media" type="button" aria-label="${escapeHtml(formatTemplate(t("view_set_images"), { name: item.setName }))}">
+        <img loading="lazy" src="${item.coverUrl}?size=420" alt="${escapeHtml(item.setName)}" />
+      </button>
       <div>
         <p class="cover-title">${escapeHtml(item.setName)}</p>
         <p class="cover-meta">${escapeHtml(characters || t("not_available"))}</p>
         <p class="cover-meta">${formatNumber(item.imageCount)} ${escapeHtml(t("images"))} · ${escapeHtml(formatBytes(item.totalSize))} · ${escapeHtml(t("avg_size"))} ${escapeHtml(formatBytes(item.averageImageSize))}</p>
         <p class="cover-path">${escapeHtml(t("relative_path"))}: ${escapeHtml(item.relativePath)}</p>
+        <div class="cover-card-actions">
+          <button class="secondary-button cover-card-button" type="button">${escapeHtml(t("view_all_images"))}</button>
+        </div>
       </div>
     `;
+    const openButton = article.querySelector(".cover-card-button");
+    const mediaButton = article.querySelector(".cover-card-media");
+    const openGallery = () => {
+      void openSetGallery(item.id);
+    };
+    openButton.addEventListener("click", openGallery);
+    mediaButton.addEventListener("click", openGallery);
     container.append(article);
   });
+}
+
+function renderGalleryModal() {
+  const modal = $("gallery-modal");
+  const title = $("gallery-title");
+  const meta = $("gallery-meta");
+  const results = $("gallery-results");
+  const grid = $("gallery-grid");
+  const empty = `<div class="empty-state">${t("detail_empty")}</div>`;
+  grid.innerHTML = "";
+  $("gallery-load-more").hidden = true;
+
+  if (!state.gallerySet) {
+    title.textContent = t("gallery_title");
+    meta.textContent = "";
+    results.textContent = "";
+    grid.innerHTML = empty;
+    return;
+  }
+
+  const payload = state.gallerySet;
+  const filteredImages = getFilteredGalleryImages();
+  const visibleImages = filteredImages.slice(0, state.galleryVisibleCount || GALLERY_PAGE_SIZE);
+  title.textContent = galleryTitle(payload);
+  meta.textContent = formatTemplate(t("gallery_meta"), {
+    count: formatNumber(payload.images.length),
+    size: formatBytes(payload.totalSize),
+    path: payload.relativePath,
+  });
+  results.textContent = formatTemplate(t("gallery_results"), {
+    shown: formatNumber(visibleImages.length),
+    total: formatNumber(filteredImages.length),
+    all: formatNumber(payload.images.length),
+  });
+
+  if (!filteredImages.length) {
+    grid.innerHTML = `<div class="empty-state">${t("gallery_empty")}</div>`;
+    disconnectGalleryObserver();
+    return;
+  }
+
+  visibleImages.forEach((image) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "gallery-thumb";
+    button.innerHTML = `
+      <img loading="lazy" src="${image.thumbnailUrl}" alt="${escapeHtml(image.fileName)}" />
+      <span class="gallery-thumb-label">${escapeHtml(image.fileName)}</span>
+    `;
+    button.addEventListener("click", () => {
+      openImageViewer(image.index);
+    });
+    grid.append(button);
+  });
+
+  const hasMore = visibleImages.length < filteredImages.length;
+  $("gallery-load-more").hidden = !hasMore;
+  if (hasMore) {
+    observeGallerySentinel();
+  } else {
+    disconnectGalleryObserver();
+  }
+
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeGalleryModal() {
+  $("gallery-modal").hidden = true;
+  $("viewer-modal").hidden = true;
+  document.body.classList.remove("modal-open");
+  state.gallerySet = null;
+  state.galleryImageIndex = 0;
+  state.gallerySearch = "";
+  state.galleryVisibleCount = 0;
+  $("gallery-search").value = "";
+  disconnectGalleryObserver();
+}
+
+function renderImageViewer() {
+  const modal = $("viewer-modal");
+  if (!state.gallerySet) {
+    modal.hidden = true;
+    return;
+  }
+  const image = state.gallerySet.images[state.galleryImageIndex];
+  if (!image) {
+    modal.hidden = true;
+    return;
+  }
+  $("viewer-image").src = image.imageUrl;
+  $("viewer-image").alt = image.fileName;
+  $("viewer-caption").textContent = formatTemplate(t("gallery_viewer_caption"), {
+    index: formatNumber(state.galleryImageIndex + 1),
+    count: formatNumber(state.gallerySet.images.length),
+    name: image.fileName,
+  });
+  $("viewer-open-original").href = image.imageUrl;
+  $("viewer-open-original").textContent = t("open_original_image");
+  $("viewer-prev").disabled = state.galleryImageIndex <= 0;
+  $("viewer-next").disabled = state.galleryImageIndex >= state.gallerySet.images.length - 1;
+  modal.hidden = false;
+}
+
+function closeImageViewer() {
+  $("viewer-modal").hidden = true;
+}
+
+function openImageViewer(index) {
+  state.galleryImageIndex = index;
+  renderImageViewer();
+}
+
+function stepImageViewer(offset) {
+  if (!state.gallerySet) {
+    return;
+  }
+  const nextIndex = state.galleryImageIndex + offset;
+  if (nextIndex < 0 || nextIndex >= state.gallerySet.images.length) {
+    return;
+  }
+  state.galleryImageIndex = nextIndex;
+  renderImageViewer();
+}
+
+function disconnectGalleryObserver() {
+  if (state.galleryObserver) {
+    state.galleryObserver.disconnect();
+    state.galleryObserver = null;
+  }
+}
+
+function loadMoreGalleryImages() {
+  const filteredImages = getFilteredGalleryImages();
+  if (state.galleryVisibleCount >= filteredImages.length) {
+    return;
+  }
+  state.galleryVisibleCount = Math.min(state.galleryVisibleCount + GALLERY_PAGE_SIZE, filteredImages.length);
+  renderGalleryModal();
+}
+
+function observeGallerySentinel() {
+  const loadMoreButton = $("gallery-load-more");
+  disconnectGalleryObserver();
+  if (!("IntersectionObserver" in window) || loadMoreButton.hidden) {
+    return;
+  }
+  state.galleryObserver = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting)) {
+      loadMoreGalleryImages();
+    }
+  }, {
+    root: null,
+    rootMargin: "0px 0px 280px 0px",
+    threshold: 0.1,
+  });
+  state.galleryObserver.observe(loadMoreButton);
+}
+
+async function openSetGallery(setId) {
+  state.gallerySet = await fetchJson(`/api/sets/${encodeURIComponent(setId)}?locale=${encodeURIComponent(state.locale)}`);
+  state.galleryImageIndex = 0;
+  state.gallerySearch = "";
+  state.galleryVisibleCount = Math.min(GALLERY_PAGE_SIZE, state.gallerySet.images.length);
+  $("gallery-search").value = "";
+  renderGalleryModal();
 }
 
 function escapeHtml(value) {
@@ -661,110 +869,6 @@ function downloadRanking(entityType) {
   void downloadRankingSection(entityType);
 }
 
-function inlineComputedStyles(sourceNode, clonedNode) {
-  if (!(sourceNode instanceof Element) || !(clonedNode instanceof Element)) {
-    return;
-  }
-  const computedStyle = window.getComputedStyle(sourceNode);
-  const styleText = Array.from(computedStyle).map((name) => `${name}:${computedStyle.getPropertyValue(name)};`).join("");
-  clonedNode.setAttribute("style", styleText);
-
-  if (clonedNode instanceof HTMLImageElement && sourceNode instanceof HTMLImageElement) {
-    clonedNode.setAttribute("src", sourceNode.currentSrc || sourceNode.src);
-    clonedNode.setAttribute("loading", "eager");
-    clonedNode.setAttribute("decoding", "sync");
-  }
-
-  const sourceChildren = Array.from(sourceNode.childNodes);
-  const clonedChildren = Array.from(clonedNode.childNodes);
-  for (let index = 0; index < sourceChildren.length; index += 1) {
-    inlineComputedStyles(sourceChildren[index], clonedChildren[index]);
-  }
-}
-
-async function ensureImagesReady(node) {
-  const images = Array.from(node.querySelectorAll("img"));
-  await Promise.all(
-    images.map(async (img) => {
-      if (img.complete && img.naturalWidth > 0) {
-        return;
-      }
-      await new Promise((resolve) => {
-        const done = () => resolve();
-        img.addEventListener("load", done, { once: true });
-        img.addEventListener("error", done, { once: true });
-      });
-    }),
-  );
-}
-
-async function renderNodeToBlob(target) {
-  await ensureImagesReady(target);
-
-  const rect = target.getBoundingClientRect();
-  const width = Math.ceil(rect.width);
-  const height = Math.ceil(rect.height);
-  const clone = target.cloneNode(true);
-  inlineComputedStyles(target, clone);
-
-  clone.querySelectorAll("button").forEach((button) => {
-    button.remove();
-  });
-  clone.querySelectorAll("[aria-hidden='true']").forEach((node) => {
-    if (node.classList?.contains("scan-summary-icon")) {
-      node.remove();
-    }
-  });
-
-  const wrapper = document.createElement("div");
-  wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  wrapper.style.width = `${width}px`;
-  wrapper.style.height = `${height}px`;
-  wrapper.style.padding = "0";
-  wrapper.style.margin = "0";
-  wrapper.style.background = window.getComputedStyle(document.body).backgroundColor || "#f7f4ed";
-  wrapper.append(clone);
-
-  const serialized = new XMLSerializer().serializeToString(wrapper);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <foreignObject width="100%" height="100%">${serialized}</foreignObject>
-    </svg>
-  `;
-  const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  try {
-    const image = await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Failed to render ranking section"));
-      img.src = url;
-    });
-    const scale = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
-    const canvas = document.createElement("canvas");
-    canvas.width = width * scale;
-    canvas.height = height * scale;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      throw new Error("Canvas is not available");
-    }
-    context.scale(scale, scale);
-    context.drawImage(image, 0, 0, width, height);
-    return await new Promise((resolve, reject) => {
-      canvas.toBlob((canvasBlob) => {
-        if (canvasBlob) {
-          resolve(canvasBlob);
-        } else {
-          reject(new Error("Failed to create ranking image"));
-        }
-      }, "image/png");
-    });
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
 async function triggerBlobDownload(blob, filename) {
   const url = URL.createObjectURL(blob);
   try {
@@ -780,20 +884,19 @@ async function triggerBlobDownload(blob, filename) {
 }
 
 async function downloadRankingSection(entityType) {
-  const panelId = entityType === "cosers" ? "coser-cover-panel" : "character-cover-panel";
-  const panel = $(panelId);
-  if (!panel) {
-    throw new Error(`Ranking panel not found: ${panelId}`);
-  }
-
   try {
-    const blob = await renderNodeToBlob(panel);
+    const url = `/api/rankings/${encodeURIComponent(entityType)}/poster?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.detail || response.statusText);
+    }
+    const blob = await response.blob();
     const filename = `${sanitizeFilenamePart(entityType)}-${sanitizeFilenamePart(state.sort)}-${sanitizeFilenamePart(state.locale)}.png`;
     await triggerBlobDownload(blob, filename);
   } catch (error) {
     console.error(error);
-    const url = `/api/rankings/${encodeURIComponent(entityType)}/poster?locale=${encodeURIComponent(state.locale)}&sort=${encodeURIComponent(state.sort)}`;
-    window.open(url, "_blank", "noopener");
+    $("scan-note").textContent = error.message;
   }
 }
 
@@ -829,6 +932,51 @@ function bindEvents() {
       $("i18n-status").textContent = error.message;
     } finally {
       event.target.value = "";
+    }
+  });
+  $("gallery-close").addEventListener("click", closeGalleryModal);
+  $("gallery-search").addEventListener("input", (event) => {
+    state.gallerySearch = event.target.value || "";
+    state.galleryVisibleCount = Math.min(GALLERY_PAGE_SIZE, getFilteredGalleryImages().length);
+    renderGalleryModal();
+  });
+  $("gallery-load-more").addEventListener("click", loadMoreGalleryImages);
+  $("gallery-modal").addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) {
+      closeGalleryModal();
+    }
+  });
+  $("viewer-close").addEventListener("click", closeImageViewer);
+  $("viewer-prev").addEventListener("click", () => {
+    stepImageViewer(-1);
+  });
+  $("viewer-next").addEventListener("click", () => {
+    stepImageViewer(1);
+  });
+  $("viewer-modal").addEventListener("click", (event) => {
+    if (event.target === event.currentTarget) {
+      closeImageViewer();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (!$("viewer-modal").hidden) {
+        closeImageViewer();
+        return;
+      }
+      if (!$("gallery-modal").hidden) {
+        closeGalleryModal();
+      }
+      return;
+    }
+    if (!$("viewer-modal").hidden) {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        stepImageViewer(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        stepImageViewer(1);
+      }
     }
   });
 }

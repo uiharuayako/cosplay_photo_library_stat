@@ -255,6 +255,47 @@
       </section>
     </div>
 
+    <div class="modal-shell" id="gallery-modal" hidden>
+      <div class="modal-card gallery-modal-card" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
+        <div class="modal-header">
+          <div>
+            <p class="section-kicker" id="gallery-kicker">Set Gallery</p>
+            <h2 id="gallery-title">Gallery</h2>
+            <p class="modal-meta" id="gallery-meta"></p>
+          </div>
+          <button class="secondary-button" id="gallery-close" type="button">Close</button>
+        </div>
+        <div class="gallery-toolbar">
+          <label class="field">
+            <span id="gallery-search-label">Search</span>
+            <input id="gallery-search" type="search" />
+          </label>
+          <p class="gallery-results" id="gallery-results"></p>
+        </div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+        <div class="gallery-footer">
+          <button class="secondary-button" id="gallery-load-more" type="button">Load more</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-shell modal-shell-front" id="viewer-modal" hidden>
+      <div class="modal-card viewer-modal-card" role="dialog" aria-modal="true" aria-labelledby="viewer-caption">
+        <div class="modal-header modal-header-compact">
+          <p class="modal-meta" id="viewer-caption"></p>
+          <div class="panel-actions">
+            <button class="secondary-button" id="viewer-prev" type="button">Prev</button>
+            <button class="secondary-button" id="viewer-next" type="button">Next</button>
+            <a class="secondary-button modal-link-button" id="viewer-open-original" href="#" target="_blank" rel="noopener"></a>
+            <button class="secondary-button" id="viewer-close" type="button">Close</button>
+          </div>
+        </div>
+        <div class="viewer-stage">
+          <img id="viewer-image" alt="" />
+        </div>
+      </div>
+    </div>
+
     <template id="summary-card-template">
       <article class="summary-card">
         <span class="summary-label"></span>

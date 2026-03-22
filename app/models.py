@@ -27,6 +27,13 @@ class SetRecord(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    images: Mapped[list[SetImage]] = relationship(
+        "SetImage",
+        back_populates="set_record",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="SetImage.image_index",
+    )
 
 
 class SetCharacter(Base):
@@ -39,6 +46,19 @@ class SetCharacter(Base):
     character_name: Mapped[str] = mapped_column(String(255))
 
     set_record: Mapped[SetRecord] = relationship("SetRecord", back_populates="characters")
+
+
+class SetImage(Base):
+    __tablename__ = "set_images"
+    __table_args__ = (UniqueConstraint("set_id", "image_index", name="uq_set_image_index"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    set_id: Mapped[int] = mapped_column(ForeignKey("set_records.id", ondelete="CASCADE"), index=True)
+    image_index: Mapped[int] = mapped_column(Integer)
+    file_name: Mapped[str] = mapped_column(String(512))
+    relative_path: Mapped[str] = mapped_column(String(1024), unique=True)
+
+    set_record: Mapped[SetRecord] = relationship("SetRecord", back_populates="images")
 
 
 class ScanState(Base):
