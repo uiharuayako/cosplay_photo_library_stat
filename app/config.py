@@ -9,8 +9,18 @@ class Settings:
         base_dir = Path(__file__).resolve().parent.parent
         self.project_dir = base_dir
         self.data_dir = Path(os.getenv("DATA_DIR", base_dir / "data")).expanduser().resolve()
-        library_root_env = os.getenv("LIBRARY_ROOT") or os.getenv("NAS_BASE_PATH") or str(base_dir / "cosplay_data")
-        self.library_root = Path(library_root_env).expanduser().resolve()
+        configured_library_root = os.getenv("LIBRARY_ROOT") or os.getenv("NAS_BASE_PATH")
+        if configured_library_root:
+            library_root = Path(configured_library_root).expanduser().resolve()
+        else:
+            candidate_roots = [
+                Path("/Volumes/data/Otaku/cosplay_photo_library_v3"),
+                Path("/mnt/share/user/Otaku/cosplay_photo_library_v3"),
+                Path("/mnt/user/Otaku/cosplay_photo_library_v3"),
+                base_dir / "cosplay_data",
+            ]
+            library_root = next((path.resolve() for path in candidate_roots if path.exists()), (base_dir / "cosplay_data").resolve())
+        self.library_root = library_root
         self.cache_dir = self.data_dir / "cache"
         self.thumbnail_dir = self.cache_dir / "thumbnails"
         self.i18n_dir = self.data_dir / "i18n"

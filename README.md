@@ -77,6 +77,14 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8080
 
 访问 [http://localhost:8080](http://localhost:8080)。
 
+如果未显式设置 `LIBRARY_ROOT`，应用会优先尝试以下默认图库路径：
+
+- macOS SMB 挂载：`/Volumes/data/Otaku/cosplay_photo_library_v3`
+- Ubuntu VM 共享挂载：`/mnt/share/user/Otaku/cosplay_photo_library_v3`
+- Unraid NAS：`/mnt/user/Otaku/cosplay_photo_library_v3`
+
+若这些路径都不存在，才会回退到仓库内的 `cosplay_data/`。
+
 ## Docker 部署
 
 仓库提供两个 Compose 示例：

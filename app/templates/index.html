@@ -64,194 +64,217 @@
         </div>
       </details>
 
-      <section class="summary-grid" id="summary-grid"></section>
-
-      <section class="two-column stats-section">
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="coser-stats-kicker"></p>
-              <h2 id="coser-stats-title"></h2>
-            </div>
-          </div>
-          <div class="metric-stat-grid" id="coser-stats-grid"></div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="character-stats-kicker"></p>
-              <h2 id="character-stats-title"></h2>
-            </div>
-          </div>
-          <div class="metric-stat-grid" id="character-stats-grid"></div>
-        </section>
-      </section>
-
-      <section class="panel sort-panel">
-        <div class="sort-shell">
+      <section class="panel page-tabs-panel">
+        <div class="panel-heading tabs-heading">
           <div>
-            <p class="section-kicker" id="sort-kicker"></p>
-            <h2 id="sort-title"></h2>
+            <p class="section-kicker" id="page-tabs-kicker"></p>
+            <h2 id="page-tabs-title"></h2>
           </div>
-          <div class="sort-tabs" id="sort-tabs"></div>
+        </div>
+        <div class="page-tabs" id="page-tabs" role="tablist" aria-label="Dashboard sections">
+          <button class="page-tab-button" id="tab-button-overview" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-overview" data-tab="overview"></button>
+          <button class="page-tab-button" id="tab-button-rankings" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-rankings" data-tab="rankings"></button>
+          <button class="page-tab-button" id="tab-button-details" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-details" data-tab="details"></button>
+          <button class="page-tab-button" id="tab-button-localization" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-localization" data-tab="localization"></button>
         </div>
       </section>
 
-      <section class="cover-rankings-stack">
-        <section class="panel" id="coser-cover-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="coser-cover-kicker"></p>
-              <h2 id="coser-cover-title"></h2>
-            </div>
-            <div class="panel-actions">
-              <button class="secondary-button" id="coser-cover-download" type="button"></button>
-            </div>
-          </div>
-          <div class="cover-ranking-grid" id="coser-cover-grid"></div>
-        </section>
+      <section class="tab-panel active" id="tab-panel-overview" role="tabpanel" aria-labelledby="tab-button-overview" data-tab-panel="overview">
+        <section class="summary-grid" id="summary-grid"></section>
 
-        <section class="panel" id="character-cover-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="character-cover-kicker"></p>
-              <h2 id="character-cover-title"></h2>
+        <section class="two-column stats-section">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="coser-stats-kicker"></p>
+                <h2 id="coser-stats-title"></h2>
+              </div>
             </div>
-            <div class="panel-actions">
-              <button class="secondary-button" id="character-cover-download" type="button"></button>
+            <div class="metric-stat-grid" id="coser-stats-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="character-stats-kicker"></p>
+                <h2 id="character-stats-title"></h2>
+              </div>
             </div>
-          </div>
-          <div class="cover-ranking-grid" id="character-cover-grid"></div>
+            <div class="metric-stat-grid" id="character-stats-grid"></div>
+          </section>
         </section>
       </section>
 
-      <section class="two-column">
-        <section class="panel">
-          <div class="panel-heading">
+      <section class="tab-panel" id="tab-panel-rankings" role="tabpanel" aria-labelledby="tab-button-rankings" data-tab-panel="rankings" hidden>
+        <section class="panel sort-panel">
+          <div class="sort-shell">
             <div>
-              <p class="section-kicker" id="coser-chart-kicker"></p>
-              <h2 id="coser-chart-title"></h2>
+              <p class="section-kicker" id="sort-kicker"></p>
+              <h2 id="sort-title"></h2>
             </div>
+            <div class="sort-tabs" id="sort-tabs"></div>
           </div>
-          <div class="bar-list" id="coser-bar-list"></div>
         </section>
 
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="character-chart-kicker"></p>
-              <h2 id="character-chart-title"></h2>
+        <section class="cover-rankings-stack">
+          <section class="panel" id="coser-cover-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="coser-cover-kicker"></p>
+                <h2 id="coser-cover-title"></h2>
+              </div>
+              <div class="panel-actions">
+                <button class="secondary-button" id="coser-cover-download" type="button"></button>
+              </div>
             </div>
-          </div>
-          <div class="bar-list" id="character-bar-list"></div>
+            <div class="cover-ranking-grid" id="coser-cover-grid"></div>
+          </section>
+
+          <section class="panel" id="character-cover-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="character-cover-kicker"></p>
+                <h2 id="character-cover-title"></h2>
+              </div>
+              <div class="panel-actions">
+                <button class="secondary-button" id="character-cover-download" type="button"></button>
+              </div>
+            </div>
+            <div class="cover-ranking-grid" id="character-cover-grid"></div>
+          </section>
+        </section>
+
+        <section class="two-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="coser-chart-kicker"></p>
+                <h2 id="coser-chart-title"></h2>
+              </div>
+            </div>
+            <div class="bar-list" id="coser-bar-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="character-chart-kicker"></p>
+                <h2 id="character-chart-title"></h2>
+              </div>
+            </div>
+            <div class="bar-list" id="character-bar-list"></div>
+          </section>
+        </section>
+
+        <section class="two-column rankings">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="coser-table-kicker"></p>
+                <h2 id="coser-table-title"></h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th id="th-coser-name"></th>
+                    <th id="th-sets-coser"></th>
+                    <th id="th-images-coser"></th>
+                    <th id="th-size-coser"></th>
+                    <th id="th-avg-size-coser"></th>
+                  </tr>
+                </thead>
+                <tbody id="coser-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="character-table-kicker"></p>
+                <h2 id="character-table-title"></h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th id="th-character-name"></th>
+                    <th id="th-sets-character"></th>
+                    <th id="th-images-character"></th>
+                    <th id="th-size-character"></th>
+                    <th id="th-avg-size-character"></th>
+                  </tr>
+                </thead>
+                <tbody id="character-table-body"></tbody>
+              </table>
+            </div>
+          </section>
         </section>
       </section>
 
-      <section class="two-column rankings">
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="coser-table-kicker"></p>
-              <h2 id="coser-table-title"></h2>
+      <section class="tab-panel" id="tab-panel-details" role="tabpanel" aria-labelledby="tab-button-details" data-tab-panel="details" hidden>
+        <section class="two-column">
+          <section class="panel detail-panel" id="coser-detail-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="coser-detail-kicker"></p>
+                <h2 id="coser-detail-title"></h2>
+              </div>
             </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th id="th-coser-name"></th>
-                  <th id="th-sets-coser"></th>
-                  <th id="th-images-coser"></th>
-                  <th id="th-size-coser"></th>
-                  <th id="th-avg-size-coser"></th>
-                </tr>
-              </thead>
-              <tbody id="coser-table-body"></tbody>
-            </table>
-          </div>
-        </section>
+            <label class="field">
+              <span id="coser-filter-label"></span>
+              <select id="coser-select"></select>
+            </label>
+            <div class="detail-summary" id="coser-detail-summary"></div>
+            <div class="card-grid" id="coser-card-grid"></div>
+          </section>
 
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="character-table-kicker"></p>
-              <h2 id="character-table-title"></h2>
+          <section class="panel detail-panel" id="character-detail-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker" id="character-detail-kicker"></p>
+                <h2 id="character-detail-title"></h2>
+              </div>
             </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th id="th-character-name"></th>
-                  <th id="th-sets-character"></th>
-                  <th id="th-images-character"></th>
-                  <th id="th-size-character"></th>
-                  <th id="th-avg-size-character"></th>
-                </tr>
-              </thead>
-              <tbody id="character-table-body"></tbody>
-            </table>
-          </div>
+            <label class="field">
+              <span id="character-filter-label"></span>
+              <select id="character-select"></select>
+            </label>
+            <div class="detail-summary" id="character-detail-summary"></div>
+            <div class="card-grid" id="character-card-grid"></div>
+          </section>
         </section>
       </section>
 
-      <section class="two-column">
-        <section class="panel detail-panel" id="coser-detail-panel">
+      <section class="tab-panel" id="tab-panel-localization" role="tabpanel" aria-labelledby="tab-button-localization" data-tab-panel="localization" hidden>
+        <section class="panel">
           <div class="panel-heading">
             <div>
-              <p class="section-kicker" id="coser-detail-kicker"></p>
-              <h2 id="coser-detail-title"></h2>
+              <p class="section-kicker" id="i18n-kicker"></p>
+              <h2 id="i18n-title"></h2>
             </div>
           </div>
-          <label class="field">
-            <span id="coser-filter-label"></span>
-            <select id="coser-select"></select>
-          </label>
-          <div class="detail-summary" id="coser-detail-summary"></div>
-          <div class="card-grid" id="coser-card-grid"></div>
-        </section>
-
-        <section class="panel detail-panel" id="character-detail-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-kicker" id="character-detail-kicker"></p>
-              <h2 id="character-detail-title"></h2>
-            </div>
+          <div class="i18n-controls">
+            <label class="field compact-field">
+              <span id="i18n-locale-label"></span>
+              <select id="i18n-locale-select"></select>
+            </label>
+            <label class="field compact-field">
+              <span id="i18n-entity-label"></span>
+              <select id="i18n-entity-select"></select>
+            </label>
+            <button class="secondary-button" id="export-button" type="button"></button>
+            <label class="upload-button" for="import-file" id="import-button-label"></label>
+            <input id="import-file" type="file" accept=".csv,text/csv" hidden />
           </div>
-          <label class="field">
-            <span id="character-filter-label"></span>
-            <select id="character-select"></select>
-          </label>
-          <div class="detail-summary" id="character-detail-summary"></div>
-          <div class="card-grid" id="character-card-grid"></div>
+          <p class="hint" id="i18n-hint"></p>
+          <p class="status-text" id="i18n-status"></p>
         </section>
-      </section>
-
-      <section class="panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker" id="i18n-kicker"></p>
-            <h2 id="i18n-title"></h2>
-          </div>
-        </div>
-        <div class="i18n-controls">
-          <label class="field compact-field">
-            <span id="i18n-locale-label"></span>
-            <select id="i18n-locale-select"></select>
-          </label>
-          <label class="field compact-field">
-            <span id="i18n-entity-label"></span>
-            <select id="i18n-entity-select"></select>
-          </label>
-          <button class="secondary-button" id="export-button" type="button"></button>
-          <label class="upload-button" for="import-file" id="import-button-label"></label>
-          <input id="import-file" type="file" accept=".csv,text/csv" hidden />
-        </div>
-        <p class="hint" id="i18n-hint"></p>
-        <p class="status-text" id="i18n-status"></p>
       </section>
     </div>
 

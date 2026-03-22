@@ -2,6 +2,7 @@ const state = {
   config: null,
   locale: window.__APP_BOOTSTRAP__.defaultLocale,
   sort: window.__APP_BOOTSTRAP__.defaultSort,
+  activeTab: "overview",
   ui: {},
   dashboard: null,
   scan: null,
@@ -163,6 +164,12 @@ function renderStaticText() {
   $("app-title").textContent = t("title");
   $("app-subtitle").textContent = t("subtitle");
   $("label-locale").textContent = t("locale_label");
+  $("page-tabs-kicker").textContent = t("page_tabs_kicker");
+  $("page-tabs-title").textContent = t("page_tabs_title");
+  $("tab-button-overview").textContent = t("tab_overview");
+  $("tab-button-rankings").textContent = t("tab_rankings");
+  $("tab-button-details").textContent = t("tab_details");
+  $("tab-button-localization").textContent = t("tab_localization");
   $("scan-kicker").textContent = t("scan_kicker");
   $("scan-title").textContent = t("scan_title");
   $("scan-current-folder-label").textContent = t("scan_current_folder");
@@ -279,6 +286,29 @@ function renderSortStatus() {
   });
 }
 
+function renderPageTabs() {
+  document.querySelectorAll("[data-tab]").forEach((button) => {
+    const isActive = button.dataset.tab === state.activeTab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+    button.tabIndex = isActive ? 0 : -1;
+  });
+
+  document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+    const isActive = panel.dataset.tabPanel === state.activeTab;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+function switchTab(tabId) {
+  if (!tabId || state.activeTab === tabId) {
+    return;
+  }
+  state.activeTab = tabId;
+  renderPageTabs();
+}
+
 async function applySort(value) {
   if (state.sort === value) {
     return;
@@ -382,6 +412,7 @@ function coverHighlightLabel(item) {
 }
 
 function focusDetailPanel(panelId) {
+  switchTab("details");
   $(panelId)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -901,6 +932,11 @@ async function downloadRankingSection(entityType) {
 }
 
 function bindEvents() {
+  document.querySelectorAll("[data-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      switchTab(button.dataset.tab);
+    });
+  });
   $("locale-select").addEventListener("change", async (event) => {
     await switchLocale(event.target.value);
   });
@@ -989,6 +1025,7 @@ async function init() {
   renderStaticText();
   renderLocaleSelects();
   renderSortStatus();
+  renderPageTabs();
   bindEvents();
   await loadDashboard();
   await refreshScan();
