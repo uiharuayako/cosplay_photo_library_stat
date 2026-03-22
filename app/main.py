@@ -5,6 +5,7 @@ import hashlib
 import io
 import os
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
 
@@ -36,7 +37,9 @@ templates = Jinja2Templates(directory=str(settings.project_dir / "app" / "templa
 
 
 ENTITY_TYPES = {"cosers", "characters"}
+PROJECT_FONT_DIR = settings.project_dir / "app" / "assets" / "fonts"
 FONT_PATHS = [
+    str(PROJECT_FONT_DIR / "NotoSansSC-Regular.otf"),
     "/System/Library/Fonts/Hiragino Sans GB.ttc",
     "/System/Library/Fonts/STHeiti Light.ttc",
     "/System/Library/Fonts/PingFang.ttc",
@@ -50,6 +53,7 @@ FONT_PATHS = [
 ]
 
 BOLD_FONT_PATHS = [
+    str(PROJECT_FONT_DIR / "NotoSansSC-Bold.otf"),
     "/System/Library/Fonts/Hiragino Sans GB.ttc",
     "/System/Library/Fonts/STHeiti Medium.ttc",
     "/System/Library/Fonts/PingFang.ttc",
@@ -127,6 +131,7 @@ def clamp_text(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont, 
     return f"{current.rstrip()}{suffix}" if current else suffix
 
 
+@lru_cache(maxsize=32)
 def load_font(size: int, bold: bool = False) -> ImageFont.ImageFont:
     preferred_paths = BOLD_FONT_PATHS if bold else FONT_PATHS
     for path in preferred_paths:

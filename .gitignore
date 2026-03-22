@@ -29,6 +29,10 @@ local/
 # Local runtime data
 /data/
 /app_data/
+/data-debug-resume*/
+/scan-debug/
+/tmp/
+/logs/
 
 # Build artifacts
 build/
