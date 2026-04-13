@@ -1,5 +1,6 @@
 # macOS
 .DS_Store
+**/.DS_Store
 
 # Python bytecode and caches
 __pycache__/
@@ -19,6 +20,7 @@ htmlcov/
 .direnv/
 .python-version
 .codex/
+.playwright-cli/
 .idea/
 .vscode/
 .secrets/

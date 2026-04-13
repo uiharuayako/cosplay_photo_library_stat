@@ -7,23 +7,52 @@
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow" id="app-kicker">Cosplay Photo Library</p>
+    <header class="site-nav">
+      <div class="site-nav-inner">
+        <div class="site-brand">
+          <span class="site-brand-mark" aria-hidden="true"></span>
+          <div class="site-brand-copy">
+            <p class="site-brand-kicker" id="app-kicker">Cosplay Photo Library</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero hero-dark">
+        <div class="hero-copy-block">
+          <p class="eyebrow" id="hero-kicker">Cosplay Photo Library</p>
           <h1 id="app-title">Statistics Dashboard</h1>
           <p class="hero-copy" id="app-subtitle"></p>
         </div>
-        <div class="hero-controls">
-          <label class="field compact-field">
-            <span id="label-locale"></span>
-            <select id="locale-select"></select>
-          </label>
-          <button class="primary-button" id="scan-button" type="button"></button>
-        </div>
-      </header>
 
-      <details class="panel scan-panel" id="scan-details">
+        <aside class="hero-sidebar">
+          <section class="hero-surface hero-control-card" aria-labelledby="label-locale">
+            <label class="field compact-field">
+              <span id="label-locale"></span>
+              <select id="locale-select"></select>
+            </label>
+            <button class="primary-button" id="scan-button" type="button"></button>
+          </section>
+
+          <section class="hero-surface hero-tabs-card" aria-labelledby="page-tabs-title">
+            <div class="panel-heading hero-tabs-heading">
+              <div>
+                <p class="section-kicker" id="page-tabs-kicker"></p>
+                <h2 id="page-tabs-title"></h2>
+              </div>
+            </div>
+            <div class="page-tabs" id="page-tabs" role="tablist" aria-label="Dashboard sections">
+              <button class="page-tab-button" id="tab-button-overview" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-overview" data-tab="overview"></button>
+              <button class="page-tab-button" id="tab-button-rankings" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-rankings" data-tab="rankings"></button>
+              <button class="page-tab-button" id="tab-button-details" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-details" data-tab="details"></button>
+              <button class="page-tab-button" id="tab-button-localization" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-localization" data-tab="localization"></button>
+            </div>
+          </section>
+        </aside>
+      </section>
+
+      <details class="panel panel-dark scan-panel" id="scan-details">
         <summary class="scan-summary">
           <div class="panel-heading scan-summary-heading">
             <div>
@@ -64,26 +93,13 @@
         </div>
       </details>
 
-      <section class="panel page-tabs-panel">
-        <div class="panel-heading tabs-heading">
-          <div>
-            <p class="section-kicker" id="page-tabs-kicker"></p>
-            <h2 id="page-tabs-title"></h2>
-          </div>
-        </div>
-        <div class="page-tabs" id="page-tabs" role="tablist" aria-label="Dashboard sections">
-          <button class="page-tab-button" id="tab-button-overview" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-overview" data-tab="overview"></button>
-          <button class="page-tab-button" id="tab-button-rankings" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-rankings" data-tab="rankings"></button>
-          <button class="page-tab-button" id="tab-button-details" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-details" data-tab="details"></button>
-          <button class="page-tab-button" id="tab-button-localization" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-localization" data-tab="localization"></button>
-        </div>
-      </section>
-
-      <section class="tab-panel active" id="tab-panel-overview" role="tabpanel" aria-labelledby="tab-button-overview" data-tab-panel="overview">
-        <section class="summary-grid" id="summary-grid"></section>
+      <section class="tab-panel active tab-panel-stack" id="tab-panel-overview" role="tabpanel" aria-labelledby="tab-button-overview" data-tab-panel="overview">
+        <section class="panel panel-light summary-panel">
+          <section class="summary-grid" id="summary-grid"></section>
+        </section>
 
         <section class="two-column stats-section">
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="coser-stats-kicker"></p>
@@ -93,7 +109,7 @@
             <div class="metric-stat-grid" id="coser-stats-grid"></div>
           </section>
 
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="character-stats-kicker"></p>
@@ -105,8 +121,8 @@
         </section>
       </section>
 
-      <section class="tab-panel" id="tab-panel-rankings" role="tabpanel" aria-labelledby="tab-button-rankings" data-tab-panel="rankings" hidden>
-        <section class="panel sort-panel">
+      <section class="tab-panel tab-panel-stack" id="tab-panel-rankings" role="tabpanel" aria-labelledby="tab-button-rankings" data-tab-panel="rankings" hidden>
+        <section class="panel panel-dark sort-panel">
           <div class="sort-shell">
             <div>
               <p class="section-kicker" id="sort-kicker"></p>
@@ -117,7 +133,7 @@
         </section>
 
         <section class="cover-rankings-stack">
-          <section class="panel" id="coser-cover-panel">
+          <section class="panel panel-dark" id="coser-cover-panel">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="coser-cover-kicker"></p>
@@ -130,7 +146,7 @@
             <div class="cover-ranking-grid" id="coser-cover-grid"></div>
           </section>
 
-          <section class="panel" id="character-cover-panel">
+          <section class="panel panel-dark" id="character-cover-panel">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="character-cover-kicker"></p>
@@ -145,7 +161,7 @@
         </section>
 
         <section class="two-column">
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="coser-chart-kicker"></p>
@@ -155,7 +171,7 @@
             <div class="bar-list" id="coser-bar-list"></div>
           </section>
 
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="character-chart-kicker"></p>
@@ -167,7 +183,7 @@
         </section>
 
         <section class="two-column rankings">
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="coser-table-kicker"></p>
@@ -191,7 +207,7 @@
             </div>
           </section>
 
-          <section class="panel">
+          <section class="panel panel-light">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="character-table-kicker"></p>
@@ -217,9 +233,9 @@
         </section>
       </section>
 
-      <section class="tab-panel" id="tab-panel-details" role="tabpanel" aria-labelledby="tab-button-details" data-tab-panel="details" hidden>
+      <section class="tab-panel tab-panel-stack" id="tab-panel-details" role="tabpanel" aria-labelledby="tab-button-details" data-tab-panel="details" hidden>
         <section class="two-column">
-          <section class="panel detail-panel" id="coser-detail-panel">
+          <section class="panel panel-light detail-panel" id="coser-detail-panel">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="coser-detail-kicker"></p>
@@ -234,7 +250,7 @@
             <div class="card-grid" id="coser-card-grid"></div>
           </section>
 
-          <section class="panel detail-panel" id="character-detail-panel">
+          <section class="panel panel-light detail-panel" id="character-detail-panel">
             <div class="panel-heading">
               <div>
                 <p class="section-kicker" id="character-detail-kicker"></p>
@@ -251,8 +267,8 @@
         </section>
       </section>
 
-      <section class="tab-panel" id="tab-panel-localization" role="tabpanel" aria-labelledby="tab-button-localization" data-tab-panel="localization" hidden>
-        <section class="panel">
+      <section class="tab-panel tab-panel-stack" id="tab-panel-localization" role="tabpanel" aria-labelledby="tab-button-localization" data-tab-panel="localization" hidden>
+        <section class="panel panel-light">
           <div class="panel-heading">
             <div>
               <p class="section-kicker" id="i18n-kicker"></p>
@@ -276,7 +292,7 @@
           <p class="status-text" id="i18n-status"></p>
         </section>
       </section>
-    </div>
+    </main>
 
     <div class="modal-shell" id="gallery-modal" hidden>
       <div class="modal-card gallery-modal-card" role="dialog" aria-modal="true" aria-labelledby="gallery-title">
